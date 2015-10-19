@@ -1,7 +1,7 @@
 #include "Button.h"
 #include "QTRSensors.h"
 #include "Arduino.h"
-//#include "Math.h"
+#include "Math.h"
 
 //Constantes Do Robo
 #define RAIO_DAS_RODAS 			0.033
