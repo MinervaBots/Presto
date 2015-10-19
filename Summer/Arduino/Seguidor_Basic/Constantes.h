@@ -1,6 +1,7 @@
 #include "Button.h"
 #include "QTRSensors.h"
 #include "Arduino.h"
+//#include "Math.h"
 
 //Constantes Do Robo
 #define RAIO_DAS_RODAS 			0.033
@@ -72,6 +73,12 @@ float speed_left	= 0.0;
 int   pwm_right 	= 0;
 int   pwm_left		= 0;
 float erro = 0;
+float KP_nl_0 = 0.5 * KP;
+float KP_nl_1 = 2 * KP;
+float KD_nl_1 = 2 * KD;
+float KI_nl_0 = 0.5 * KI;
+float KI_nl_1 = 2 * KI;
+float beta = 0.5 * KP;
 
 #ifdef LOG
 	float sensors_debug[NUMBER_OF_SAMPLES];
@@ -176,6 +183,36 @@ float pid_control(float error)
 	return output;
 }
 #ifdef LEAD_LAG
+
+
+float nonlinear_pid_control (float error)
+{
+  if(millis() - pid_last_rub < DT * 1000)
+    return output;
+
+  pid_last_run = millis();
+
+//constantes do PID
+  alfa0 = (KP_nl_1 - KP_nl_0)/(erro_maximo^2);
+  KP_nl_0 = KP_nl_1;
+  KP_nl_1 = alfa0 * (error^2) + BETA;
+  
+  alfa1 = KD_nl_1/(error2);
+  KD_nl_1 = alfa1 * (error^2);
+  
+  gama = KI_nl_0;
+  sigma = log(KI_nl_1)/(log(KI_nl_0 * erro_maximo)^2);
+  KI_nl_1 = gama * exp(-sigma * (gama * error)^2);
+
+  integral += KI_nl_1 * DT * error;
+  output = KP_nl_1 * error + integral + KD_nl_1*(error-last_error)/DT;
+  last_error = error;
+  #ifdef LOG
+    store_data(error);
+  #endif
+  return output;
+    
+}
 
 float lead_lag_compensator(float signal)
 {
