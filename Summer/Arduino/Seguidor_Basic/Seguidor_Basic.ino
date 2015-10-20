@@ -47,13 +47,14 @@ unsigned long begin = 0;
 
 void loop() 
 {
+ // move_foward();
 	//Seguir
 	while(following)
 	{
       if(begin == 0)
         begin = millis();
       #ifdef DEBUG 
-       print_all();
+     // print_all();
       #endif
     	angular_speed = nonlinear_pid_control(read_sensors());
     	calculate_motor_speeds();

@@ -197,8 +197,8 @@ float nonlinear_pid_control (float error)
 
 //constantes do PID
   alfa0 = (KP_nl_1 - KP_nl_0)/pow(erro_maximo,2);
-  KP_nl_0 = KP_nl_1;
   KP_nl_1 = alfa0 * (error*error) + beta;
+  KP_nl_0 = KP_nl_1;
   
   alfa1 = KD_nl_1/(error*error);
   KD_nl_1 = alfa1 * (error*error);
@@ -212,9 +212,9 @@ float nonlinear_pid_control (float error)
   last_error = error;
   #ifdef LOG
     store_data(error);
-  #endif
-  return output;
-    
+    #endif
+    return output;
+      
 }
 #ifdef LEAD_LAG
 
