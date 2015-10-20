@@ -1,7 +1,7 @@
 #include "Button.h"
 #include "QTRSensors.h"
 #include "Arduino.h"
-#include "Math.h"
+#include "math.h"
 
 //Constantes Do Robo
 #define RAIO_DAS_RODAS 			0.033
@@ -79,6 +79,10 @@ float KD_nl_1 = 2 * KD;
 float KI_nl_0 = 0.5 * KI;
 float KI_nl_1 = 2 * KI;
 float beta = 0.5 * KP;
+float alfa0 = 0;
+float alfa1 = 0;
+float gama = 0;
+float sigma = 0;
 
 #ifdef LOG
 	float sensors_debug[NUMBER_OF_SAMPLES];
@@ -102,6 +106,7 @@ void calculate_motor_speeds();
 void calculate_pwm();
 void move_robot();
 float pid_control(float error);
+float nonlinear_pid_control(float error);
 float lead_lag_compensator(float signal);
 void store_data(float input);
 void print_data();
@@ -182,27 +187,25 @@ float pid_control(float error)
 	#endif
 	return output;
 }
-#ifdef LEAD_LAG
-
 
 float nonlinear_pid_control (float error)
 {
-  if(millis() - pid_last_rub < DT * 1000)
+  if(millis() - pid_last_run < DT * 1000)
     return output;
 
   pid_last_run = millis();
 
 //constantes do PID
-  alfa0 = (KP_nl_1 - KP_nl_0)/(erro_maximo^2);
+  alfa0 = (KP_nl_1 - KP_nl_0)/pow(erro_maximo,2);
   KP_nl_0 = KP_nl_1;
-  KP_nl_1 = alfa0 * (error^2) + BETA;
+  KP_nl_1 = alfa0 * (error*error) + beta;
   
-  alfa1 = KD_nl_1/(error2);
-  KD_nl_1 = alfa1 * (error^2);
+  alfa1 = KD_nl_1/(error*error);
+  KD_nl_1 = alfa1 * (error*error);
   
   gama = KI_nl_0;
-  sigma = log(KI_nl_1)/(log(KI_nl_0 * erro_maximo)^2);
-  KI_nl_1 = gama * exp(-sigma * (gama * error)^2);
+  sigma = log(KI_nl_1)/(log(KI_nl_0 * erro_maximo)*log(KI_nl_0 * erro_maximo));
+  KI_nl_1 = gama * exp(-sigma * (gama * error)*(gama * error));
 
   integral += KI_nl_1 * DT * error;
   output = KP_nl_1 * error + integral + KD_nl_1*(error-last_error)/DT;
@@ -213,6 +216,10 @@ float nonlinear_pid_control (float error)
   return output;
     
 }
+#ifdef LEAD_LAG
+
+
+
 
 float lead_lag_compensator(float signal)
 {

@@ -55,7 +55,7 @@ void loop()
       #ifdef DEBUG 
        print_all();
       #endif
-    	angular_speed = pid_control(read_sensors());
+    	angular_speed = nonlinear_pid_control(read_sensors());
     	calculate_motor_speeds();
     	calculate_pwm();
     	move_robot();
