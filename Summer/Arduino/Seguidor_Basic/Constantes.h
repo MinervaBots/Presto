@@ -53,7 +53,7 @@
 
 #define FIRST_ORDER
 	#ifdef FIRST_ORDER
-		#define ALPHA
+		#define ALPHA 0.4
 	#endif
 //Flags
 bool following 	= true;
@@ -179,7 +179,7 @@ float pid_control(float error)
 	
 	pid_last_run = millis();
 	
-	derivative = ALPHA * KD*(error-last_error)/DT + (1 - ALPHA) * derivative;
+	derivative = ALPHA * KD *(error-last_error)/DT + (1 - ALPHA) * derivative;
 	integral += KI*DT*error;
 	output = KP * error + integral + derivative;
 	last_error = error;
