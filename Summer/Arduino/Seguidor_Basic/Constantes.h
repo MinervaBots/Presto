@@ -179,9 +179,9 @@ float pid_control(float error)
 	
 	pid_last_run = millis();
 	
-	derivative = ALPHA * KD *(error-last_error)/DT + (1 - ALPHA) * derivative;
+	//derivative = ALPHA * KD *(error-last_error)/DT + (1.0 - ALPHA) * derivative;
 	integral += KI*DT*error;
-	output = KP * error + integral + derivative;
+	output = KP * error + integral + KD *(error-last_error)/DT;
 	last_error = error;
 	#ifdef LOG
 		store_data(error);
@@ -219,7 +219,7 @@ float nonlinear_pid_control (float error)
 }
 #ifdef LEAD_LAG
 
-
+ 
 
 
 float lead_lag_compensator(float signal)
@@ -243,6 +243,12 @@ float read_sensors()
 //  if(on_the_line())
 //    erro = -erro_maximo*((1000.0-sensors[0]) * 3 + (1000.0-sensors[1]) * 2 + (1000.0 -sensors[2]) - (1000.0-sensors[3]) - (1000-sensors[4]) * 2 - (1000.0-sensors[5]) *3)/12000.0; 
 //  return erro;
+}
+
+float read_sensors_filtered(float alpha)
+{
+  erro = alpha * erro_maximo*((qtra.readLine(sensors, QTR_EMITTERS_ON, WHITE_LINE) - CENTER_POSITION)/CENTER_POSITION) + (1.0 - alpha) * erro;
+  return erro;
 }
 void alpha_beta_filter()
 {
