@@ -65,6 +65,7 @@ float theta = atan(LARGURA_SENSOR/(2.0 * ALTURA_SENSOR));
 float pid_last_run	= 0.0;
 float last_error 	= 0.0;
 float output 		= 0.0;
+float derivative = 0.0;
 float integral		= 0.0;
 float linear_speed	= VELOCIDADE_LINEAR;	
 float angular_speed	= 0.0;
@@ -178,9 +179,9 @@ float pid_control(float error)
 	
 	pid_last_run = millis();
 	
-	
+	derivative = ALPHA * KD*(error-last_error)/DT + (1 - ALPHA) * derivative;
 	integral += KI*DT*error;
-	output = KP * error + integral + KD*(error-last_error)/DT;
+	output = KP * error + integral + derivative;
 	last_error = error;
 	#ifdef LOG
 		store_data(error);
