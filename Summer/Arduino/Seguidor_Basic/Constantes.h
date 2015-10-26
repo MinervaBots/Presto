@@ -1,7 +1,10 @@
+#include <SoftwareSerial.h>
 #include "Button.h"
 #include "QTRSensors.h"
 #include "Arduino.h"
 #include "math.h"
+
+//SoftwareSerial mySerial(MOSI, 4);
 
 //Constantes Do Robo
 #define RAIO_DAS_RODAS 			0.033
@@ -9,12 +12,12 @@
 #define LARGURA_SENSOR			0.0774
 #define ALTURA_SENSOR			0.120
 #define TENSAO_DE_ALIMENTACAO	9.0
-#define VELOCIDADE_LINEAR		2.0
+#define VELOCIDADE_LINEAR		1.75
 //Constantes de Controle
 #define KM	7.8164
-#define KP	7.0
-#define KI	0.00000015
-#define KD	0.69
+#define KP	9.8 // antes: 9.0 ; teste malu: 9.8 ; 7.8
+#define KI	0.0010 // antes: 0.0015 ; teste malu: 0.0015 
+#define KD	0.18 // antes: 0.2 ; teste malu: 0.4
 #define DT  0.010
 //Pinos do Microcontrolador
 #define BUTTON_PIN 	5
@@ -73,17 +76,20 @@ float speed_right	= 0.0;
 float speed_left	= 0.0;
 int   pwm_right 	= 0;
 int   pwm_left		= 0;
-float erro = 0;
+float erro = 0.0;
 float KP_nl_0 = 0.5 * KP;
 float KP_nl_1 = 2 * KP;
 float KD_nl_1 = 2 * KD;
 float KI_nl_0 = 0.5 * KI;
 float KI_nl_1 = 2 * KI;
 float beta = 0.5 * KP;
-float alfa0 = 0;
-float alfa1 = 0;
-float gama = 0;
-float sigma = 0;
+float alfa0 = 0.0;
+float alfa1 = 0.0;
+float gama = 0.0;
+float sigma = 0.0;
+float KD_nl = 0.0;
+float KI_nl = 0.0;
+float KP_nl = 0.0;
 
 #ifdef LOG
 	float sensors_debug[NUMBER_OF_SAMPLES];
@@ -108,6 +114,7 @@ void calculate_pwm();
 void move_robot();
 float pid_control(float error);
 float nonlinear_pid_control(float error);
+float nonlinear2_pid_control (float error);
 float lead_lag_compensator(float signal);
 void store_data(float input);
 void print_data();
@@ -127,8 +134,12 @@ void calculate_linear_angular_speeds()
 //Calcula Velocidade dos 
 void calculate_motor_speeds()
 {
-	speed_left = (2 * linear_speed - angular_speed * ENTRE_EIXOS)/(2.0 * RAIO_DAS_RODAS);
+  speed_left = (2 * linear_speed - angular_speed * ENTRE_EIXOS)/(2.0 * RAIO_DAS_RODAS);
 	speed_right = (2 * linear_speed + angular_speed * ENTRE_EIXOS)/(2.0 * RAIO_DAS_RODAS);
+  /*Serial.print("speed_left=");
+  Serial.println(speed_left);
+  Serial.print("speed_right=");
+  Serial.println(speed_right);*/
 }
 
 void calculate_pwm()
@@ -213,21 +224,43 @@ float nonlinear_pid_control (float error)
   last_error = error;
   #ifdef LOG
     store_data(error);
-    #endif
+  #endif
     return output;
       
 }
+float nonlinear2_pid_control (float error)
+{
+  if(millis() - pid_last_run < DT * 1000)
+    return output;
+
+  pid_last_run = millis();
+
+  alfa0 = (KP_nl_1 - KP_nl_0)/pow(erro_maximo,2);
+  KP_nl = alfa0 * (error*error) + beta;
+  
+  alfa1 = KD_nl_1/(error*error);
+  KD_nl = alfa1 * (error*error);
+
+  gama = KI_nl_0;
+  sigma = log(KI_nl_1)/(log(KI_nl_0)*(KI_nl_0*erro_maximo)*(KI_nl_0*erro_maximo));
+  KI_nl = gama * exp(-sigma * (gama * error)*(gama * error) );
+
+  integral += KI_nl * DT * error;
+    
+  output = KP_nl * error + integral + KD_nl*(error-last_error)/DT;
+    
+  last_error = error;
+  #ifdef LOG
+    store_data(error);
+  #endif
+  return output;
+}
 #ifdef LEAD_LAG
-
- 
-
-
 float lead_lag_compensator(float signal)
 {
 	lead_lag_output = signal - ZERO * lead_lag_last_input + POLE * lead_lag_output;
 	return lead_lag_output;
 }
-
 #endif
 //Estimadores
 bool on_the_line()
@@ -241,7 +274,7 @@ float read_sensors()
 {
   return erro_maximo*((qtra.readLine(sensors, QTR_EMITTERS_ON, WHITE_LINE) - CENTER_POSITION)/CENTER_POSITION);
 //  if(on_the_line())
-//    erro = -erro_maximo*((1000.0-sensors[0]) * 3 + (1000.0-sensors[1]) * 2 + (1000.0 -sensors[2]) - (1000.0-sensors[3]) - (1000-sensors[4]) * 2 - (1000.0-sensors[5]) *3)/12000.0; 
+//    erro = -  *((1000.0-sensors[0]) * 3 + (1000.0-sensors[1]) * 2 + (1000.0 -sensors[2]) - (1000.0-sensors[3]) - (1000-sensors[4]) * 2 - (1000.0-sensors[5]) *3)/12000.0; 
 //  return erro;
 }
 

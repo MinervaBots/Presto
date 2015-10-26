@@ -1,12 +1,15 @@
 // Codigo do Seguidor sem importar funcoes externas
 
-#define DEBUG 
+//#define DEBUG 
 
+#include <SoftwareSerial.h>
 #include "Constantes.h"
 #include "QTRSensors.h"
 #include "Button.h"
+
 void setup() 
 {
+	
 	#ifdef DEBUG
 		Serial.begin(9600);
 	#endif
@@ -41,6 +44,7 @@ void setup()
  following = 1;
  delay(1000);
  digitalWrite(13,1);
+ 
 }
 
 unsigned long begin = 0;
@@ -56,7 +60,7 @@ void loop()
       #ifdef DEBUG 
      // print_all();
       #endif
-    	angular_speed = pid_control(read_sensors_filtered(0.3));
+    	angular_speed = nonlinear2_pid_control(read_sensors_filtered(0.3));
     	calculate_motor_speeds();
     	calculate_pwm();
     	move_robot();
