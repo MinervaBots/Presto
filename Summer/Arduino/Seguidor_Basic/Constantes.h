@@ -12,12 +12,12 @@
 #define LARGURA_SENSOR			0.0774
 #define ALTURA_SENSOR			0.120
 #define TENSAO_DE_ALIMENTACAO	9.0
-#define VELOCIDADE_LINEAR		1.75
+#define VELOCIDADE_LINEAR		2.0
 //Constantes de Controle
 #define KM	7.8164
-#define KP	9.8 // antes: 9.0 ; teste malu: 9.8 ; 7.8
-#define KI	0.0010 // antes: 0.0015 ; teste malu: 0.0015 
-#define KD	0.18 // antes: 0.2 ; teste malu: 0.4
+#define KP	9.9 // antes: 9.0 ; teste malu: 9.8 ; 7.8
+#define KI	0.01 // antes: 0.0015 ; teste malu: 0.0015 
+#define KD	0.13 // antes: 0.2 ; teste malu: 0.4
 #define DT  0.010
 //Pinos do Microcontrolador
 #define BUTTON_PIN 	5
