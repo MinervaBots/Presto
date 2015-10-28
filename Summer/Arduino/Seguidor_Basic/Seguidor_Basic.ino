@@ -2,7 +2,7 @@
 
 //#define DEBUG 
 
-#include <SoftwareSerial.h>
+//#include <SoftwareSerial.h>
 #include "Constantes.h"
 #include "QTRSensors.h"
 #include "Button.h"
