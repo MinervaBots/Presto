@@ -66,6 +66,9 @@ void loop()
     	move_robot();
 		if (button.isPressed())
   		following = false;
+    mark = read_border();
+    if (mark == CHEGADA)
+      following = false;   
 	}
 
 	stop();

@@ -33,6 +33,10 @@
 #define WHITE_LINE 			1
 #define TIMEOUT 			2000.0
 
+// Sensores de reflectancia laterais
+#define BORDA_DIREITA
+#define BORDA_ESQUERDA
+
 // Variaveis de Debug
 //#define DEBUG
 //#define LOG
@@ -90,6 +94,7 @@ float sigma = 0.0;
 float KD_nl = 0.0;
 float KI_nl = 0.0;
 float KP_nl = 0.0;
+int mark = 0;
 
 #ifdef LOG
 	float sensors_debug[NUMBER_OF_SAMPLES];
@@ -103,6 +108,8 @@ float KP_nl = 0.0;
 
 //Classes
 QTRSensorsAnalog qtra((unsigned char[]) {A4,A3,A2,A1,A0,8}, NUM_SENSORS, 1);
+QTRSensorsAnalog qtrd((unsigned char[]) {BORDA_DIREITA}, 1, 1);
+QTRSensorsAnalog qtre((unsigned char[]) {BORDA_ESQUERDA}, 1, 1);
 Button button = Button(BUTTON_PIN,PULLDOWN);
 
 unsigned int sensors[NUM_SENSORS];
@@ -281,7 +288,13 @@ float read_sensors()
 float read_sensors_filtered(float alpha)
 {
   erro = alpha * erro_maximo*((qtra.readLine(sensors, QTR_EMITTERS_ON, WHITE_LINE) - CENTER_POSITION)/CENTER_POSITION) + (1.0 - alpha) * erro;
-  return erro;
+  return erro; 
+}
+
+int read_border();
+{
+  if (qtrd.readLine(sensors, QTR_EMITTERS_ON, WHITE_LINE) && qtre.readLine(sensors, QTR_EMITTERS_ON, WHITE_LINE))
+    return mark += 1;
 }
 void alpha_beta_filter()
 {
