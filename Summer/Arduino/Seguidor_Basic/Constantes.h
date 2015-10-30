@@ -12,10 +12,10 @@
 #define LARGURA_SENSOR			0.0774
 #define ALTURA_SENSOR			0.120
 #define TENSAO_DE_ALIMENTACAO	9.0
-#define VELOCIDADE_LINEAR		2.5
+#define VELOCIDADE_LINEAR		3.0
 //Constantes de Controle
 #define KM	7.8164
-#define KP	11.4 // antes: 9.0 ; teste malu: 9.8 ; 7.8
+#define KP	11.6 // antes: 9.0 ; teste malu: 9.8 ; 7.8
 #define KI	0.04 // antes: 0.0015 ; teste malu: 0.0015 
 #define KD	0.18 // antes: 0.2 ; teste malu: 0.4
 #define DT  0.010
@@ -34,8 +34,10 @@
 #define TIMEOUT 			2000.0
 
 // Sensores de reflectancia laterais
-#define BORDA_DIREITA
-#define BORDA_ESQUERDA
+#define BORDA_DIREITA 1
+#define BORDA_ESQUERDA 0
+// Marcações contando a final
+#define CHEGADA 2
 
 // Variaveis de Debug
 //#define DEBUG
@@ -94,7 +96,12 @@ float sigma = 0.0;
 float KD_nl = 0.0;
 float KI_nl = 0.0;
 float KP_nl = 0.0;
-int mark = 0;
+unsigned mark = 0;
+unsigned mark2 = 0;
+int contadorSensorDireita=0;
+int contadorSensorEsquerda=0;
+int read_last_run = 0;
+int RT = 0.10;
 
 #ifdef LOG
 	float sensors_debug[NUMBER_OF_SAMPLES];
@@ -125,6 +132,7 @@ float nonlinear2_pid_control (float error);
 float lead_lag_compensator(float signal);
 void store_data(float input);
 void print_data();
+void read_border();
 // Funcoes Locomocao 
 void stop() {
   digitalWrite(R_MOTOR_1, 1);
@@ -288,13 +296,26 @@ float read_sensors()
 float read_sensors_filtered(float alpha)
 {
   erro = alpha * erro_maximo*((qtra.readLine(sensors, QTR_EMITTERS_ON, WHITE_LINE) - CENTER_POSITION)/CENTER_POSITION) + (1.0 - alpha) * erro;
-  return erro; 
+  return erro;
 }
-
-int read_border();
+void read_border()
 {
-  if (qtrd.readLine(sensors, QTR_EMITTERS_ON, WHITE_LINE) && qtre.readLine(sensors, QTR_EMITTERS_ON, WHITE_LINE))
-    return mark += 1;
+  qtrd.readCalibrated(&mark);  
+  //Serial.print("Esquerda ");
+  //Serial.print( mark );
+  /*qtre.readLine(&mark2, QTR_EMITTERS_ON, WHITE_LINE);
+  Serial.print(" Direita ");
+  Serial.print( mark2 );
+  if (!mark2)
+   {
+    contadorSensorDireita += 1;
+   }*/
+  if (!mark)
+  {
+     if(millis() - read_last_run > RT * 1000)
+      contadorSensorEsquerda += 1;
+      read_last_run=millis();
+  }
 }
 void alpha_beta_filter()
 {

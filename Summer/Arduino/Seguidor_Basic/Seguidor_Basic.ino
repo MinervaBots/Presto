@@ -15,7 +15,6 @@ void setup()
 	#endif
 	
 	//Calibrar
-	
   while(!button.isPressed());
 	delay(500);
   #ifdef DEBUG
@@ -29,9 +28,11 @@ void setup()
 		 Serial.println("calibrando");
 		#endif
 		qtra.calibrate();
+    qtre.calibrate();
+    qtrd.calibrate();
 	}
 	//Calibrado
- #ifdef DEBUG
+  #ifdef DEBUG
 	Serial.println("Calibrado");
   #endif
   digitalWrite(13,1);
@@ -58,17 +59,21 @@ void loop()
       if(begin == 0)
         begin = millis();
       #ifdef DEBUG 
-     // print_all();
+        print_all();
       #endif
     	angular_speed = nonlinear2_pid_control(read_sensors_filtered(0.3));
     	calculate_motor_speeds();
     	calculate_pwm();
     	move_robot();
-		if (button.isPressed())
-  		following = false;
-    mark = read_border();
-    if (mark == CHEGADA)
-      following = false;   
+      //read_border();
+      //Serial.print(" ");
+      //Serial.println(contadorSensorEsquerda);
+      if (contadorSensorDireita == CHEGADA)
+      {
+        following = false;
+      }
+      if (button.isPressed())
+        following = false; 
 	}
 
 	stop();
