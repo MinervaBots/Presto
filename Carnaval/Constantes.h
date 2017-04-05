@@ -71,7 +71,6 @@ float derivative = 0.0;
 float integral    = 0.0;
 float linear_speed  = VELOCIDADE_LINEAR;  
 
-unsigned long deadline=8400;  // Tempo máximo pro Presto completar a pista
 float ARW=0.0001;
 float BC=0;
 float angular_speed = 0.0;
@@ -80,25 +79,10 @@ float speed_left  = 0.0;
 int   pwm_right   = 0;
 int   pwm_left    = 0;
 float erro = 0.0;
-float KP_nl_0 = 0.5 * KP;
-float KP_nl_1 = 2 * KP;
-float KD_nl_1 = 2 * KD;
-float KI_nl_0 = 0.5 * KI;
-float KI_nl_1 = 2 * KI;
-float beta = 0.5 * KP;
-float alfa0 = 0.0;
-float alfa1 = 0.0;
-float gama = 0.0;
-float sigma = 0.0;
-float KD_nl = 0.0;
-float KI_nl = 0.0;
-float KP_nl = 0.0;
 unsigned mark = 0;
-unsigned mark2 = 0;
 int contadorSensorDireita=0;
 int contadorSensorEsquerda=0;
 unsigned long read_last_run = 0;
-unsigned long read_last_run2 = 0;
 unsigned long stop_time = 0;
 unsigned long start_time = 0;
 
@@ -116,16 +100,11 @@ void stop();
 void calculate_linear_angular_speeds();
 void calculate_motor_speeds();
 void calculate_pwm();
-void move_robot();
+void move_robot(); //TALVEZ DELETAR ANALISAR DEPOIS
 float pid_control(float error);
-float ARW_pid_control(float error);
-float nonlinear_pid_control(float error);
-float nonlinear2_pid_control (float error);
-float lead_lag_compensator(float signal);
 void store_data(float input);
 void print_data();
 void read_border();
-void check_line();
 
 //Necessarios ao killsiwtch
 IRrecv irrecv(SINAL_KILLSWITCH);
@@ -217,127 +196,6 @@ float pid_control(float error)
   return output;
 }
 
-float ARW_pid_control(float error)
-{
-  if(millis() - pid_last_run < DT * 1000){
-    return output;
-  }
-  
-  if(output>2*SPEED){ //back calculation, ARW=alpha
-    BC=ARW*(output-2*SPEED);
-  }
-  if(output<-2*SPEED){
-    BC=ARW*(output+2*SPEED);
-  }
-  else{
-    BC=0;
-  }
-  
-  integral = integral + (KI*DT*error-BC);
-  
-  output = KP * error + integral + KD *(error-last_error)/DT;
-  last_error = error;
-  
-  #ifdef LOG
-    store_data(error);
-  #endif
-  
-  pid_last_run = millis();
-  return output;
-}
-
-float pid_control_limited(float error)
-{
- if(millis() - pid_last_run < DT * 1000)
-    return output;
-  
-  pid_last_run = millis();
-  
-  //derivative = ALPHA * KD *(error-last_error)/DT + (1.0 - ALPHA) * derivative;
-  integral += KI*DT*error;
-  integral = (integral >erro_maximo * 0.8)?erro_maximo * 0.8 : integral;
-  derivative =  KD *(error-last_error)/DT ;
-  derivative = (derivative > erro_maximo * 0.8)? erro_maximo * 0.8 : derivative;
-  output =  (KP * error + integral + KD *(error-last_error)/DT);
-  last_error = error;
-  #ifdef LOG
-    store_data(error);
-  #endif
-  return output; 
-}
-float pid_control_filtered(float error, float alpha)
-{
-  if(millis() - pid_last_run < DT * 1000)
-    return output;
-  
-  pid_last_run = millis();
-  
-  //derivative = ALPHA * KD *(error-last_error)/DT + (1.0 - ALPHA) * derivative;
-  integral += KI*DT*error;
-  output = alpha * (KP * error + integral + KD *(error-last_error)/DT) + (1.0 - alpha) * output;
-  last_error = error;
-  #ifdef LOG
-    store_data(error);
-  #endif
-  return output;
-}
-
-float nonlinear_pid_control (float error)
-{
-  if(millis() - pid_last_run < DT * 1000)
-    return output;
-
-  pid_last_run = millis();
-
-//constantes do PID
-  alfa0 = (KP_nl_1 - KP_nl_0)/pow(erro_maximo,2);
-  KP_nl_1 = alfa0 * (error*error) + beta;
-  KP_nl_0 = KP_nl_1;
-  
-  alfa1 = KD_nl_1/(error*error);
-  KD_nl_1 = alfa1 * (error*error);
-  
-  gama = KI_nl_0;
-  sigma = log(KI_nl_1)/(log(KI_nl_0 * erro_maximo)*log(KI_nl_0 * erro_maximo));
-  KI_nl_1 = gama * exp(-sigma * (gama * error)*(gama * error));
-
-  integral += KI_nl_1 * DT * error;
-  output = KP_nl_1 * error + integral + KD_nl_1*(error-last_error)/DT;
-  last_error = error;
-  #ifdef LOG
-    store_data(error);
-  #endif
-    return output;
-      
-}
-float nonlinear2_pid_control (float error)
-{
-  if(millis() - pid_last_run < DT * 1000)
-    return output;
-
-  pid_last_run = millis();
-
-  alfa0 = (KP_nl_1 - KP_nl_0)/pow(erro_maximo,2);
-  KP_nl = alfa0 * (error*error) + beta;
-  
-  alfa1 = KD_nl_1/(error*error);
-  KD_nl = alfa1 * (error*error);
-
-  gama = KI_nl_0;
-  sigma = log(KI_nl_1)/(log(KI_nl_0)*(KI_nl_0*erro_maximo)*(KI_nl_0*erro_maximo));
-  KI_nl = gama * exp(-sigma * (gama * error)*(gama * error) );
-
-  integral += KI_nl * DT * error;
-    
-  output = KP_nl * error + integral + KD_nl*(error-last_error)/DT;
-    
-  last_error = error;
-  
-  #ifdef LOG
-    store_data(error);
-  #endif
-  return output;
-}
 
 float read_sensors()
 {
@@ -370,23 +228,6 @@ float error(float line_error)
   }
 }
 
-void check_line()
-{
-  if(line_error>9.9 || line_error<-9.9 ){
-    if(millis()-last_max_error > OUT_OF_LINE){
-      following = 0;
-    }
-  }
-  else{
-    last_max_error=millis();
-  }
-}
-
-
-float read_sensors_filtered(float alpha){
-  erro = alpha * erro_maximo*((qtra.readLine(sensors, QTR_EMITTERS_ON, WHITE_LINE) - CENTER_POSITION)/CENTER_POSITION) + (1.0 - alpha) * erro;
-  return erro;
-}
 
 void read_right()
 {
@@ -410,31 +251,7 @@ void read_right()
   }
 }
 
-void read_left()
-{
-  qtre.readCalibrated(&mark2);
-  
-  /*#ifdef DEBUG
-  Serial.println("Mark: \tContador:");
-  Serial.print(mark2);
-  Serial.print("\t");
-  Serial.println(contadorSensorEsquerda);
-  #endif*/
-  
-  if (mark2 < 100)
-  {
-     if( (millis()-read_last_run2) > 120){
-      contadorSensorEsquerda = contadorSensorEsquerda + 1;
-      if(contadorSensorEsquerda==8){
-        KP=40;
-      }
-      else{
-        KP=33.5;
-      }
-      read_last_run2=millis();
-     }
-  }
-}
+
 
 //Função que troca o valor da variável following caso o botão do meio do controle da Sky da equipe seja apertado
 void killswitch()
