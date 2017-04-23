@@ -2,7 +2,7 @@
 #include "QTRSensors.h"
 #include "Arduino.h"
 #include "math.h"
-#include <IRremote.h>
+
 
 
 //Constantes Do Robo
@@ -16,23 +16,23 @@
 
 unsigned MAX_SPEED = 90; //120 170
 unsigned CURVE_SPEED = 70; //100 140
-unsigned SPEED = 120; //200
+unsigned SPEED = 150; //200
 
 //Constantes de Controle
 #define KM  7.8164  //completou: 50 5 0.6, 160 curva
 
-float KP = 40;// 27   // 25 13s -> PID: 26 0.001 0.4 ; 4 sensores ; 200 pwm ; 7.74v 
-float KI = 0;// 13  // 20 0.001 - 100 - 50
-float KD = 0.7;// 0.8 // 0.4 - 0.8 - 0.9
+float KP = 12;// 15KD   // 25 13s -> PID: 26 0.001 0.4 ; 4 sensores ; 200 pwm ; 7.74v 
+float KI = 40;// 50KD  // 20 0.001 - 100 - 50
+float KD = 0.8;// 0.8 // 0.4 - 0.8 - 0.9
 
 #define DT  0.005
 
 //Pinos do Microcontrolador
 #define BUTTON_PIN  5
-#define R_MOTOR_1 11
-#define R_MOTOR_2 3
-#define L_MOTOR_1 9
-#define L_MOTOR_2 10
+#define L_MOTOR_1 11
+#define L_MOTOR_2 3
+#define R_MOTOR_1 9
+#define R_MOTOR_2 10
 #define SINAL_KILLSWITCH 8
 #define BUZZER 12
 
@@ -58,7 +58,7 @@ bool ledstate = false;
 bool canIread = true;
 
 //Variaveis Globais
-int num_marcacoes_pista=1;
+int num_marcacoes_pista=38;
 float erro_maximo   = 10.0; //atan(LARGURA_SENSOR/(2.0 * ALTURA_SENSOR));
 float theta = atan(LARGURA_SENSOR/(2.0 * ALTURA_SENSOR));
 unsigned long pid_last_run  = 0;
@@ -71,7 +71,7 @@ float derivative = 0.0;
 float integral    = 0.0;
 float linear_speed  = VELOCIDADE_LINEAR;  
 
-unsigned long deadline=8400;  // Tempo máximo pro Presto completar a pista
+unsigned long deadline=40000;  // Tempo máximo pro Presto completar a pista
 float ARW=0.0001;
 float BC=0;
 float angular_speed = 0.0;
@@ -126,18 +126,30 @@ void store_data(float input);
 void print_data();
 void read_border();
 void check_line();
+void stopButton();
 
 //Necessarios ao killsiwtch
-IRrecv irrecv(SINAL_KILLSWITCH);
-decode_results frequenciaRecebida;
-void killswitch();
+//IRrecv irrecv(SINAL_KILLSWITCH);
+//decode_results frequenciaRecebida;
+//void killswitch();
 
 // Funcoes Locomocao 
 void stop() {
-  analogWrite(R_MOTOR_1, 255);
-  analogWrite(R_MOTOR_2, 255);
   analogWrite(L_MOTOR_1, 255);
   analogWrite(L_MOTOR_2, 255);
+  analogWrite(R_MOTOR_1, 255);
+  analogWrite(R_MOTOR_2, 255);
+}
+
+//Funcao de parada com o botão
+void stopButton(){
+  if(button.isPressed()){
+    while(true){
+      //digitalWrite(BUZZER,LOW);
+      stop();
+      delay(90000000);
+    }
+  }
 }
 
 //Calcular velocidade liner e angular baseado na velocidade dos motores
@@ -160,41 +172,41 @@ void calculate_motor_speeds()
 
 void move_foward()
 {
-  analogWrite(R_MOTOR_1,255);
   analogWrite(L_MOTOR_1,255);
-  analogWrite(R_MOTOR_2,0);
+  analogWrite(R_MOTOR_1,255);
   analogWrite(L_MOTOR_2,0);
+  analogWrite(R_MOTOR_2,0);
 }
 
 void move_backward()
 {
-  analogWrite(R_MOTOR_1,0);
   analogWrite(L_MOTOR_1,0);
-  analogWrite(R_MOTOR_2,255);
+  analogWrite(R_MOTOR_1,0);
   analogWrite(L_MOTOR_2,255);
+  analogWrite(R_MOTOR_2,255);
 }
 
 void move_robot_old_style(float pid_output)
 {
   if(pid_output > 0){
-    analogWrite(R_MOTOR_1,SPEED);
-    analogWrite(R_MOTOR_2,0);
-    if(SPEED - pid_output < 0){
-      analogWrite(L_MOTOR_1,0);
-      analogWrite(L_MOTOR_2,abs(floor(SPEED - pid_output)));
-    }else{
-      analogWrite(L_MOTOR_1,floor(SPEED - pid_output));
-      analogWrite(L_MOTOR_2,0);
-    }
-  }else{
     analogWrite(L_MOTOR_1,SPEED);
     analogWrite(L_MOTOR_2,0);
-    if(SPEED + pid_output < 0){
+    if(SPEED - pid_output < 0){
       analogWrite(R_MOTOR_1,0);
-      analogWrite(R_MOTOR_2,floor(SPEED + pid_output));
+      analogWrite(R_MOTOR_2,abs(floor(SPEED - pid_output)));
     }else{
-      analogWrite(R_MOTOR_1,floor(SPEED + pid_output));
+      analogWrite(R_MOTOR_1,floor(SPEED - pid_output));
       analogWrite(R_MOTOR_2,0);
+    }
+  }else{
+    analogWrite(R_MOTOR_1,SPEED);
+    analogWrite(R_MOTOR_2,0);
+    if(SPEED + pid_output < 0){
+      analogWrite(L_MOTOR_1,0);
+      analogWrite(L_MOTOR_2,floor(SPEED + pid_output));
+    }else{
+      analogWrite(L_MOTOR_1,floor(SPEED + pid_output));
+      analogWrite(L_MOTOR_2,0);
     }
   }
 }
@@ -388,6 +400,7 @@ float read_sensors_filtered(float alpha){
   return erro;
 }
 
+
 void read_right()
 {
   qtrd.readCalibrated(&mark);
@@ -398,6 +411,29 @@ void read_right()
   Serial.print("\t");
   Serial.println(contadorSensorDireita);
   #endif*/
+  if(millis()- read_last_run > 200)
+    //digitalWrite(BUZZER,LOW);
+  if (mark < 100)
+   {  
+     if( (millis()-read_last_run) > 200){
+      //digitalWrite(BUZZER,HIGH);
+      contadorSensorDireita = contadorSensorDireita + 1;
+      digitalWrite(13,(contadorSensorDireita%2));
+      read_last_run=millis();
+     }
+   }
+ }
+
+/*void read_right()
+{
+  qtrd.readCalibrated(&mark);
+  
+  #ifdef DEBUG
+  Serial.println("Mark: \tContador:");
+  Serial.print(mark);
+  Serial.print("\t");
+  Serial.println(contadorSensorDireita);
+  #endi/
 
   if (mark < 200) // MARCAÇÃO BRANCA // Antes o valor estava 10  27.11.2016
   //if (mark > 900) // MARCAÇÃO PRETA
@@ -409,7 +445,7 @@ void read_right()
      }
   }
 }
-
+*/
 void read_left()
 {
   qtre.readCalibrated(&mark2);
@@ -437,7 +473,7 @@ void read_left()
 }
 
 //Função que troca o valor da variável following caso o botão do meio do controle da Sky da equipe seja apertado
-void killswitch()
+/*void killswitch()
 {
   if(irrecv.decode(&frequenciaRecebida)){ 
     if(frequenciaRecebida.value == 1336)
@@ -447,7 +483,7 @@ void killswitch()
     irrecv.resume(); // Receive the next value
   }
 }
-
+*/
 // Funcoes de Aquisicao de dados
 #ifdef LOG
 void store_data(float input)

@@ -6,6 +6,7 @@
 void setup() 
 {
 
+
   #ifdef DEBUG
     Serial.begin(9600);
   #endif
@@ -63,7 +64,7 @@ void setup()
   pinMode(A5,INPUT);
   pinMode(BORDA_DIREITA,INPUT);
   pinMode(BORDA_ESQUERDA,INPUT);
-  irrecv.enableIRIn(); // Habilita o sensor do Killswitch
+  //irrecv.enableIRIn(); // Habilita o sensor do Killswitch
 }
 
 void loop() 
@@ -77,10 +78,12 @@ void loop()
       //move_foward();
       //move_backward();
       move_robot_old_style(angular_speed);
-      killswitch();
-      /*if(millis()-start_time>6666){ //robô começa a ler o sensor apenas após um tempo (proximo da linha de chegada)
+      //killswitch();
+      
       read_right();
-      }
+      /*if(millis()-start_time>1000){ //robô começa a ler o sensor apenas após um tempo (proximo da linha de chegada)
+      read_right();
+      }*/
       if ( contadorSensorDireita > (num_marcacoes_pista-1) ){
         following = 0;
         stop_time=millis();   
@@ -88,7 +91,7 @@ void loop()
       if ( (millis()-start_time) > deadline  ){
         following = 0;
         stop_time=millis();   
-      }*/  
+      }  
   }
   contadorSensorEsquerda=0;
   contadorSensorDireita=0;
@@ -97,6 +100,8 @@ void loop()
     angular_speed = pid_control(read_sensors());
     move_robot_old_style(angular_speed);
   }
+ 
+   //digitalWrite(BUZZER,LOW);
   digitalWrite(13,0);
   #ifdef DEBUG
     Serial.println("Fim");
