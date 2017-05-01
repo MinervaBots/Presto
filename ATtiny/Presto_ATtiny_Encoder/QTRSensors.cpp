@@ -33,9 +33,18 @@
 
 #include <stdlib.h>
 #include "QTRSensors.h"
-#include <Arduino.h>
+#if defined(ARDUINO) && (ARDUINO >= 100)
+#	include <Arduino.h>
+#else
+#	if !defined(IRPRONTO)
+#		include <WProgram.h>
+#	endif
+#endif
 
-
+void QTRSensors::readPrivate(unsigned int *sensor_values)
+{
+	
+}
 
 // Base class data member initialization (called by derived class init())
 void QTRSensors::init(unsigned char *pins, unsigned char numSensors,
