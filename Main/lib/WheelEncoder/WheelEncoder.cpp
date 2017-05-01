@@ -28,4 +28,6 @@ void WheelEncoder::update()
   m_DeltaDistanceRight = 2 * PI * m_WheelRadius * (m_DeltaRightTickCount / m_TicksPerRevolution);
   m_TotalDistanceLeft += m_DeltaDistanceLeft;
   m_TotalDistanceRight += m_DeltaDistanceRight;
+  m_DeltaLeftTickCount = 0;
+  m_DeltaRightTickCount = 0;
 }

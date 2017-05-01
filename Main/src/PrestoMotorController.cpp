@@ -10,7 +10,7 @@ PrestoMotorController::PrestoMotorController()
 PrestoMotorController::PrestoMotorController(int leftPin1, int leftPin2, int rightPin1, int rightPin2,
   float maxVelocity, float inCurveVelocity,
   float wheelsRadius, float wheelsDistance, WheelEncoder *pWheelEncoder) :
-  DifferentialDriveController(nullptr, wheelsRadius, wheelsDistance, pWheelEncoder)
+  DifferentialDriveController(wheelsRadius, wheelsDistance, nullptr, pWheelEncoder)
 {
   setPins(leftPin1, leftPin2, rightPin1, rightPin2);
   setVelocities(maxVelocity, inCurveVelocity);
@@ -41,7 +41,6 @@ void PrestoMotorController::move(float linearVelocity, float angularVelocity)
     linearVelocity = clamp(linearVelocity, 0, m_MaxVelocity);
   }
   DifferentialDriveController::move(linearVelocity, angularVelocity);
-
   // TODO - PWM dos motores
   /*
   if(angularVelocity > 0)
