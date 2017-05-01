@@ -1,5 +1,5 @@
-#ifndef MotorController_h
-#define MotorController_h
+#ifndef MotorController_hpp
+#define MotorController_hpp
 
 class MotorController
 {
@@ -8,4 +8,4 @@ public:
   virtual void update() = 0; // Atualiza encoders ou qualquer outra coisa necessária
 };
 
-#endif //MotorController_h
+#endif //MotorController_hpp

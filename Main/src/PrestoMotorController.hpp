@@ -1,7 +1,7 @@
-#ifndef PrestoMotorController_h
-#define PrestoMotorController_h
+#ifndef PrestoMotorController_hpp
+#define PrestoMotorController_hpp
 
-#include "DifferentialDriveController.h"
+#include "../lib/MotorController/DifferentialDriveController.hpp"
 
 class PrestoMotorController : public DifferentialDriveController
 {
@@ -16,13 +16,13 @@ public:
   void move(float linearVelocity, float angularVelocity);
 
 private:
-  int _leftPin1;
-  int _leftPin2;
-  int _rightPin1;
-  int _rightPin2;
+  int m_LeftPin1;
+  int m_LeftPin2;
+  int m_RightPin1;
+  int m_RightPin2;
 
-  float _maxVelocity;
-  float _inCurveVelocity;
+  float m_MaxVelocity;
+  float m_InCurveVelocity;
 };
 
-#endif
+#endif // PrestoMotorController_hpp

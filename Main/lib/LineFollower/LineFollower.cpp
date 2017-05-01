@@ -1,4 +1,4 @@
-#include "LineFollower.h"
+#include "LineFollower.hpp"
 #include <Arduino.h>
 
 LineFollower::LineFollower()
@@ -6,37 +6,36 @@ LineFollower::LineFollower()
 
 }
 
-LineFollower::LineFollower(InputSource *pInputSource, SystemController *pSystemController, MotorController *pMotorController) :
-  _pInputSource(pInputSource),
-  _pSystemController(pSystemController),
-  _pMotorController(pMotorController)
+LineFollower::LineFollower(InputSource *pInputSource, SystemController *pSystemController, MotorController *pMotorController)
 {
-
+  setInputSource(pInputSource);
+  setSystemController(pSystemController);
+  setMotorController(pMotorController);
 }
 
 LineFollower::~LineFollower()
 {
   // TODO - Como liberar a memória corretamente?
   /*
-  delete _pInputSource;
-  delete _pSystemController;
-  delete _pMotorController;
+  delete m_pInputSource;
+  delete m_pSystemController;
+  delete m_pMotorController;
   */
 }
 
 void LineFollower::start()
 {
-  _startTime = millis();
+  m_StartTime = millis();
 }
 
 void LineFollower::stop()
 {
-  _stopTime = millis();
+  m_StopTime = millis();
 }
 
 
 void LineFollower::update()
 {
-  float pidOutput = _pSystemController->run(_pInputSource->getInput());
-  _pMotorController->move(100, pidOutput);
+  float pidOutput = m_pSystemController->run(m_pInputSource->getInput());
+  m_pMotorController->move(100, pidOutput);
 }

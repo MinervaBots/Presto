@@ -1,4 +1,4 @@
-#include "PrestoSensoring.h"
+#include "PrestoSensoring.hpp"
 #include "Constants.h"
 
 PrestoSensoring::PrestoSensoring()
@@ -18,42 +18,13 @@ PrestoSensoring::PrestoSensoring(QTRSensorsRC qtrArray, QTRSensorsRC qtrLeft, QT
 
 float PrestoSensoring::getInput()
 {
-  return erro_maximo*((_qtrArray.readLine(_sensorWeights, QTR_EMITTERS_ON, WHITE_LINE) - CENTER_POSITION)/CENTER_POSITION);
+  return erro_maximo*((m_QtrArray.readLine(m_SensorWeights, QTR_EMITTERS_ON, WHITE_LINE) - CENTER_POSITION)/CENTER_POSITION);
 }
 
-bool PrestoSensoring::shouldStop()
-{
-  return _rightCount >= 2;
-}
-
-bool PrestoSensoring::inCurve()
-{
-  return _inCurve;
-}
-
-void PrestoSensoring::setSensorArray(QTRSensorsRC qtrArray)
-{
-  _qtrArray = qtrArray;
-}
-
-void PrestoSensoring::setSensorLeft(QTRSensorsRC qtrLeft)
-{
-  _qtrLeft = qtrLeft;
-}
-
-void PrestoSensoring::setSensorRight(QTRSensorsRC qtrRight)
-{
-  _qtrRight = qtrRight;
-}
 void PrestoSensoring::setSampleTimes(unsigned long leftSampleTime, unsigned long rightSampleTime)
 {
-  _leftSampleTime = leftSampleTime;
-  _rightSampleTime = rightSampleTime;
-}
-
-void PrestoSensoring::setSensorWeights(unsigned int *sensorWeights)
-{
-  _sensorWeights = sensorWeights;
+  m_LeftSampleTime = leftSampleTime;
+  m_RightSampleTime = rightSampleTime;
 }
 
 void PrestoSensoring::calibrate(Button commandButton, unsigned int statusLedPin)
@@ -68,9 +39,9 @@ void PrestoSensoring::calibrate(Button commandButton, unsigned int statusLedPin)
 
   while(!commandButton.isPressed())
   {
-    _qtrArray.calibrate();
-    _qtrRight.calibrate();
-    _qtrLeft.calibrate();
+    m_QtrArray.calibrate();
+    m_QtrRight.calibrate();
+    m_QtrLeft.calibrate();
   }
 
 #ifdef DEBUG
@@ -82,23 +53,23 @@ void PrestoSensoring::update()
 {
   unsigned long now = millis();
   unsigned int value = 0;
-  if((now - _lastRun) > _leftSampleTime)
+  if((now - m_LastRun) > m_LeftSampleTime)
   {
-    _qtrLeft.readCalibrated(&value);
+    m_QtrLeft.readCalibrated(&value);
     if (value < 100)
     {
-      _inCurve = !_inCurve;
+      m_InCurve = !m_InCurve;
     }
   }
 
-  if((now - _lastRun) > _rightSampleTime)
+  if((now - m_LastRun) > m_RightSampleTime)
   {
     value = 0;
-    _qtrRight.readCalibrated(&value);
+    m_QtrRight.readCalibrated(&value);
     if (value < 100)
     {
-      _rightCount++;
+      m_RightCount++;
     }
   }
-  _lastRun = now;
+  m_LastRun = now;
 }

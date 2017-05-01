@@ -1,11 +1,11 @@
-#include "WheelEncoder.h"
+#include "WheelEncoder.hpp"
 #include <Arduino.h>
 
-WheelEncoder::WheelEncoder(int leftTickPin, int rightTickPin, float wheelRadius, int ticksPerRevolution) :
-  _wheelRadius(wheelRadius),
-  _ticksPerRevolution(ticksPerRevolution)
+WheelEncoder::WheelEncoder(int leftTickPin, int rightTickPin, float wheelRadius, unsigned int ticksPerRevolution)
 {
-  _pInstance = this;
+  m_pInstance = this;
+  setWheelRadius(wheelRadius);
+  setTicksPerRevolution(ticksPerRevolution);
   pinMode(leftTickPin, INPUT);
   pinMode(rightTickPin, INPUT);
   attachInterrupt(digitalPinToInterrupt(leftTickPin), leftTick, CHANGE);
@@ -14,52 +14,18 @@ WheelEncoder::WheelEncoder(int leftTickPin, int rightTickPin, float wheelRadius,
 
 void WheelEncoder::leftTick()
 {
-  _pInstance->_deltaLeftTickCount++;
-  //_pInstance->_deltaDistanceLeft += _pInstance->_tickArc;
-  //_pInstance->_totalDistanceLeft += _pInstance->_tickArc;
+  m_pInstance->m_DeltaLeftTickCount++;
 }
 
 void WheelEncoder::rightTick()
 {
-  _pInstance->_deltaRightTickCount++;
-  //_pInstance->_deltaDistanceRight += _pInstance->_tickArc;
-  //_pInstance->_totalDistanceRight += _pInstance->_tickArc;
+  m_pInstance->m_DeltaRightTickCount++;
 }
 
 void WheelEncoder::update()
 {
-  _deltaDistanceLeft = 2 * PI * _wheelRadius * (_deltaLeftTickCount / _ticksPerRevolution);
-  _deltaDistanceRight = 2 * PI * _wheelRadius * (_deltaRightTickCount / _ticksPerRevolution);
-  _totalDistanceLeft += _deltaDistanceLeft;
-  _totalDistanceRight += _deltaDistanceRight;
-}
-
-float WheelEncoder::getTotalDistance()
-{
-  return ((getTotalDistanceRight() + getTotalDistanceLeft()) / 2);
-}
-
-float WheelEncoder::getTotalDistanceLeft()
-{
-  return _totalDistanceLeft;
-}
-
-float WheelEncoder::getTotalDistanceRight()
-{
-  return _totalDistanceRight;
-}
-
-float WheelEncoder::getDeltaDistance()
-{
-  return ((getDeltaDistanceRight() + getDeltaDistanceLeft()) / 2);
-}
-
-float WheelEncoder::getDeltaDistanceLeft()
-{
-  return _deltaDistanceLeft;
-}
-
-float WheelEncoder::getDeltaDistanceRight()
-{
-  return _deltaDistanceRight;
+  m_DeltaDistanceLeft = 2 * PI * m_WheelRadius * (m_DeltaLeftTickCount / m_TicksPerRevolution);
+  m_DeltaDistanceRight = 2 * PI * m_WheelRadius * (m_DeltaRightTickCount / m_TicksPerRevolution);
+  m_TotalDistanceLeft += m_DeltaDistanceLeft;
+  m_TotalDistanceRight += m_DeltaDistanceRight;
 }

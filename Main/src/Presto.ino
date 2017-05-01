@@ -1,7 +1,7 @@
-#include "../lib/LineFollower/LineFollower.h"
-#include "../lib/PIDController/PIDController.h"
-#include "PrestoMotorController.h"
-#include "PrestoSensoring.h"
+#include "../lib/LineFollower/LineFollower.hpp"
+#include "../lib/PIDController/PIDController.hpp"
+#include "PrestoMotorController.hpp"
+#include "PrestoSensoring.hpp"
 #include "Constants.h"
 #include "Pins.h"
 

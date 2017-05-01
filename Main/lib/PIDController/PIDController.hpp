@@ -1,7 +1,7 @@
-#ifndef PIDController_h
-#define PIDController_h
+#ifndef PIDController_hpp
+#define PIDController_hpp
 
-#include "../SystemController/SystemController.h"
+#include "../SystemController/SystemController.hpp"
 
 class PIDController : public SystemController
 {
@@ -18,10 +18,10 @@ public:
   float run(float intput);
 
 private:
-	float _integralConstant;
-	float _derivativeConstant;
-	float _integrativeTermSum;
-	float _proportionalConstant;
+	float m_IntegralConstant;
+	float m_DerivativeConstant;
+	float m_IntegrativeTermSum;
+	float m_ProportionalConstant;
 };
 
-#endif // PIDController_h
+#endif // PIDController_hpp

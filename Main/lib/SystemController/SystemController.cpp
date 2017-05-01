@@ -1,20 +1,15 @@
-#include "SystemController.h"
+#include "SystemController.hpp"
 
-
-void SystemController::setSetPoint(float newSetPoint)
-{
-  _setPoint = newSetPoint;
-}
 
 void SystemController::setSampleTime(unsigned long newSampleTime)
 {
-  if(_sampleTime == 0)
+  if(m_SampleTime == 0)
   {
-    _sampleTime = newSampleTime;
+    m_SampleTime = newSampleTime;
   }
   else if (newSampleTime > 0)
 	{
-		_sampleTime = newSampleTime;
+		m_SampleTime = newSampleTime;
 	}
 	else
 	{
@@ -32,11 +27,6 @@ void SystemController::setOutputLimits(float min, float max)
     Serial.println("[SystemController::setOutputLimits]: min não pode ser maior que max");
     #endif
 	}
-	_minOutput = min;
-	_maxOutput = max;
-}
-
-void SystemController::setControllerDirection(SystemControllerDirection direction)
-{
-	_controllerDirection = direction;
+	m_MinOutput = min;
+	m_MaxOutput = max;
 }
