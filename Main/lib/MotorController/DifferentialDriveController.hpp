@@ -15,6 +15,7 @@ public:
   DifferentialDriveController(float wheelsRadius, float wheelsDistance, Position* pPosition)
       : DifferentialDriveController(wheelsRadius, wheelsDistance, pPosition, nullptr) {}
   DifferentialDriveController(float wheelsRadius, float wheelsDistance, Position* pPosition, WheelEncoder *pWheelEncoder);
+
   virtual void move(float linearVelocity, float angularVelocity);
   virtual void update();
   virtual void updatePosition();
@@ -34,11 +35,11 @@ public:
 private:
   float m_WheelsRadius;
   float m_WheelsDistance;
-  WheelEncoder *m_pWheelEncoder;
   float m_LeftVelocity;
   float m_RightVelocity;
 
   Position *m_pPosition;
+  WheelEncoder *m_pWheelEncoder;
 };
 
 #endif //DifferentialDriveController_hpp

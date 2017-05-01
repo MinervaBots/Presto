@@ -2,12 +2,6 @@
 #include <MathHelper.h>
 #include <Arduino.h>
 
-
-PIDController::PIDController()
-{
-
-}
-
 PIDController::PIDController(int sampleTime, float setPoint, float minOutput, float maxOutput,
 									float proportionalConstant, float integralConstant, float derivativeConstant,
 								SystemControllerDirection controllerDirection)

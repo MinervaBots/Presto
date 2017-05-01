@@ -1,11 +1,6 @@
 #include "LineFollower.hpp"
 #include <Arduino.h>
 
-LineFollower::LineFollower()
-{
-
-}
-
 LineFollower::LineFollower(InputSource *pInputSource, SystemController *pSystemController, MotorController *pMotorController)
 {
   setInputSource(pInputSource);
@@ -31,6 +26,7 @@ void LineFollower::start()
 void LineFollower::stop()
 {
   m_StopTime = millis();
+  m_pMotorController->stop();
 }
 
 

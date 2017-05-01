@@ -10,4 +10,9 @@ inline float clamp(float value, float min, float max)
 	return value;
 }
 
+inline float lerp(float start, float end, float t)
+{
+	return ((1 - t) * start) + (end * t);
+}
+
 #endif // MathHelper_h

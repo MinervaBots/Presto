@@ -4,6 +4,7 @@
 class MotorController
 {
 public:
+  virtual void stop() { move(0, 0); }
   virtual void move(float linearSpeed, float angularSpeed) = 0;
   virtual void update() = 0; // Atualiza encoders ou qualquer outra coisa necessária
 };

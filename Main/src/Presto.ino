@@ -33,7 +33,8 @@ void setup()
   pidController.setControllerDirection(SystemControllerDirection::Direct);
   pidController.setTunings(12, 40, 0.8);
 
-  motorController.setPins(L_MOTOR_1_PIN, L_MOTOR_2_PIN, R_MOTOR_1_PIN, R_MOTOR_2_PIN);
+  // TODO - Descomentar essa linha e colocar os pinos certos do motor
+  //motorController.setPins(L_MOTOR_1_PIN, L_MOTOR_2_PIN, R_MOTOR_1_PIN, R_MOTOR_2_PIN);
   motorController.setWheelsRadius(WHEELS_RADIUS);
   motorController.setWheelsDistance(WHEELS_DISTANCE);
   motorController.setVelocities(100, 60); // TODO - Porcentagens?
@@ -56,7 +57,6 @@ void loop()
     presto.stop();
     return;
   }
-
   motorController.inCurve = sensoring.inCurve();
   presto.update();
 }

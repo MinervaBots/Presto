@@ -8,7 +8,7 @@
 class LineFollower
 {
 public:
-  LineFollower();
+  LineFollower() : LineFollower(nullptr, nullptr, nullptr) {}
   LineFollower(InputSource *pInputSource, SystemController *pSystemController, MotorController *pMotorController);
   ~LineFollower();
 
