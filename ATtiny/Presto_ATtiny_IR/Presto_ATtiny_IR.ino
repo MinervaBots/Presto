@@ -26,4 +26,3 @@ void loop()
     irrecv.resume(); // Receive the next value
   }
 }
-

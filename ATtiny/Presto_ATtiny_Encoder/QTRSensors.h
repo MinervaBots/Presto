@@ -264,5 +264,4 @@ class QTRSensorsAnalog : public QTRSensors
     unsigned char _numSamplesPerSensor;
 };
 
-
 #endif
