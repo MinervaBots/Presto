@@ -1,14 +1,6 @@
 #include "PIDController.h"
+#include <MathHelper.h>
 #include <Arduino.h>
-
-float clamp(float value, float min, float max)
-{
-	if (value < min)
-		return min;
-	else if (value > max)
-		return max;
-	return value;
-}
 
 
 PIDController::PIDController()
@@ -25,11 +17,6 @@ PIDController::PIDController(int sampleTime, float setPoint, float minOutput, fl
 	setOutputLimits(minOutput, maxOutput);
 	setTunings(proportionalConstant, integralConstant, derivativeConstant);
 	setControllerDirection(controllerDirection);
-}
-
-PIDController::~PIDController()
-{
-
 }
 
 void PIDController::setSampleTime(int newSampleTime)

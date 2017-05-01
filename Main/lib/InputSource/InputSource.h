@@ -4,7 +4,6 @@
 class InputSource
 {
 public:
-  virtual ~InputSource();
   virtual float getInput() = 0;
 };
 

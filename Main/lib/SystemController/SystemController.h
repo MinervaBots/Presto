@@ -10,7 +10,6 @@ enum SystemControllerDirection
 class SystemController
 {
 public:
-  virtual ~SystemController();
   virtual float run(float intput) = 0;
 
   virtual void setSetPoint(float newSetPoint);

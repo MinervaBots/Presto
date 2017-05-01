@@ -36,7 +36,8 @@ void setup()
   motorController.setPins(L_MOTOR_1_PIN, L_MOTOR_2_PIN, R_MOTOR_1_PIN, R_MOTOR_2_PIN);
   motorController.setWheelsRadius(WHEELS_RADIUS);
   motorController.setWheelsDistance(WHEELS_DISTANCE);
-  motorController.setInCurveFactor(0.6);
+  motorController.setVelocities(100, 60); // TODO - Porcentagens?
+
   presto.setSystemController(&pidController);
   presto.setMotorController(&motorController);
 
