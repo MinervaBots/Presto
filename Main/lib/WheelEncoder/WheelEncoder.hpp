@@ -24,11 +24,11 @@ private:
   float m_WheelRadius;
   unsigned int m_TicksPerRevolution;
 
-  int m_DeltaLeftTickCount;
+  volatile int m_DeltaLeftTickCount;
   float m_DeltaDistanceLeft;
   float m_TotalDistanceLeft;
 
-  int m_DeltaRightTickCount;
+  volatile int m_DeltaRightTickCount;
   float m_DeltaDistanceRight;
   float m_TotalDistanceRight;
 
