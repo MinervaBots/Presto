@@ -197,8 +197,8 @@ EXTERN  volatile irparams_t  irparams;
 #elif defined(__AVR_ATtiny84__)
   #define IR_USE_TIMER1     // tx = pin 6
 
-//ATtiny85
-#elif defined(__AVR_ATtiny85__)
+//ATtiny85 || ATtiny45
+#elif defined(__AVR_ATtiny85__) || defined(__AVR_ATtiny5__)
   #define IR_USE_TIMER_TINY0   // tx = pin 1
 
 // Arduino Duemilanove, Diecimila, LilyPad, Mini, Fio, Nano, etc
