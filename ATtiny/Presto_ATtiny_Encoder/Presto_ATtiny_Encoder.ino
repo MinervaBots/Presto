@@ -1,25 +1,14 @@
-#include "QTRSensors.h"
-
-const int encoder_pin = 10;
-QTRSensorsRC encoder((unsigned char[]) { encoder_pin }, 1);
+#define SENSOR_DATA_IN_PIN A4
+#define ENCODER_TICK_OUT_PIN 2
+#define TICK_VALUE 200
 
 void setup()
 {
-  delay(500);
-  pinMode(13, HIGH);
-
-  for (int i = 0; i < 400; i++)
-  {
-    encoder.calibrate();
-  }
-  
-  digitalWrite(13, LOW);
-  Serial.begin(9600);
+  pinMode(SENSOR_DATA_IN_PIN, INPUT);
+  pinMode(ENCODER_TICK_OUT_PIN, OUTPUT);
 }
 
 void loop()
 {
-  unsigned int reading[1];
-  encoder.readCalibrated(reading);
-  Serial.println(reading[0]);
+  digitalWrite(ENCODER_TICK_OUT_PIN, analogRead(SENSOR_DATA_IN_PIN) < TICK_VALUE ? HIGH : LOW);
 }
