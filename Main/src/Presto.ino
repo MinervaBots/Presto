@@ -5,7 +5,7 @@
 #include "Constants.h"
 #include "Pins.h"
 
-float input;
+volatile bool shouldStop;
 LineFollower presto;
 PrestoSensoring sensoring;
 PIDController pidController;
@@ -52,7 +52,7 @@ void setup()
 void loop()
 {
   sensoring.update();
-  if(sensoring.shouldStop())
+  if(sensoring.shouldStop() || shouldStop)
   {
     presto.stop();
     return;
@@ -63,5 +63,5 @@ void loop()
 
 void killSwitch()
 {
-  presto.stop();
+  shouldStop = true;
 }
