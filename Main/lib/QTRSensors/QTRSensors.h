@@ -127,7 +127,7 @@ class QTRSensors
     unsigned int *calibratedMaximumOff;
 
     ~QTRSensors();
-
+    unsigned char getNumSensors() { return _numSensors; }
   protected:
 
     QTRSensors()

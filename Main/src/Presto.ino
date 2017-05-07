@@ -8,13 +8,13 @@
 
 #include "PrestoMotorController.hpp"
 #include "PrestoSensoring.hpp"
-#include "Constants.h"
 #include "Pins.h"
+#include "../lib/Filter/LowPassFilter.hpp"
 
 volatile bool shouldStop;
 LineFollower presto;
 PrestoSensoring sensoring;
-
+LowPassFilter lowPassFilter(5);
 #ifdef USE_NON_LINEAR_PID
 NonLinearPIDController pidController;
 #else
@@ -37,6 +37,7 @@ void setup()
   sensoring.setSensorRight(QTRSensorsRC(SensorRightBorderPins, 1, 3000));
   sensoring.setSampleTimes(120, 150);
   sensoring.setSensorWeights(sensorWeights);
+  sensoring.setLowPassFilter(&lowPassFilter);
 
   pidController.setSetPoint(0);
   pidController.setSampleTime(10);
@@ -52,8 +53,9 @@ void setup()
 
   // TODO - Descomentar essa linha e colocar os pinos certos do motor
   //motorController.setPins(L_MOTOR_1_PIN, L_MOTOR_2_PIN, R_MOTOR_1_PIN, R_MOTOR_2_PIN);
-  motorController.setWheelsRadius(WHEELS_RADIUS);
-  motorController.setWheelsDistance(WHEELS_DISTANCE);
+  // TODO - Medir isso novamente. Por causa do encoder, as rodas podem ficar mais proximas
+  motorController.setWheelsRadius(0.185);
+  motorController.setWheelsDistance(0.143);
   motorController.setVelocities(100, 60); // TODO - Porcentagens?
 
   presto.setSystemController(&pidController);

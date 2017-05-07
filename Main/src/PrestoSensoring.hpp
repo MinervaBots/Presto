@@ -1,22 +1,24 @@
 #ifndef PrestoSensoring_hpp
 #define PrestoSensoring_hpp
 
-#include "InputSource.hpp"
-#include "QTRSensors.h"
-#include "Button.h"
+#include "../lib/InputSource/InputSource.hpp"
+#include "../lib/QTRSensors/QTRSensors.h"
+#include "../lib/Button/Button.h"
+#include "../lib/Filter/LowPassFilter.hpp"
 
 class PrestoSensoring : public InputSource
 {
 public:
   PrestoSensoring();
   PrestoSensoring(QTRSensorsRC qtrArray, QTRSensorsRC qtrLeft, QTRSensorsRC qtrRight,
-    unsigned long leftSampleTime, unsigned long rightSampleTime, unsigned int *sensorWeights);
+    unsigned long leftSampleTime, unsigned long rightSampleTime, unsigned int *sensorWeights, LowPassFilter *pLowPassFilter);
 
-  void setSensorArray(QTRSensorsRC qtrArray) { m_QtrArray = qtrArray; }
+  void setSensorArray(QTRSensorsRC qtrArray);
   void setSensorLeft(QTRSensorsRC qtrLeft) { m_QtrLeft = qtrLeft; }
   void setSensorRight(QTRSensorsRC qtrRight) { m_QtrRight = qtrRight; }
   void setSampleTimes(unsigned long leftSampleTime, unsigned long rightSampleTime);
   void setSensorWeights(unsigned int *sensorWeights) { m_SensorWeights = sensorWeights; }
+  void setLowPassFilter(LowPassFilter *pLowPassFilter) { m_pLowPassFilter = pLowPassFilter; }
 
   void calibrate(Button commandButton, unsigned int statusLedPin);
 
@@ -27,17 +29,20 @@ public:
   float getInput();
 
 private:
-  float erro_maximo = 10.0;
+  //float erro_maximo = 10.0;
   bool m_InCurve;
   unsigned long m_LeftSampleTime;
   unsigned long m_RightSampleTime;
   unsigned int *m_SensorWeights;
   unsigned long m_LastRun;
   unsigned int m_RightCount;
+  float m_CenterPosition;
 
   QTRSensorsRC m_QtrArray;
   QTRSensorsRC m_QtrLeft;
   QTRSensorsRC m_QtrRight;
+
+  LowPassFilter *m_pLowPassFilter;
 };
 
 #endif // PrestoSensoring_hpp

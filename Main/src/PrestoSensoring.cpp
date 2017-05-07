@@ -1,5 +1,4 @@
 #include "PrestoSensoring.hpp"
-#include "Constants.h"
 
 PrestoSensoring::PrestoSensoring()
 {
@@ -7,18 +6,32 @@ PrestoSensoring::PrestoSensoring()
 }
 
 PrestoSensoring::PrestoSensoring(QTRSensorsRC qtrArray, QTRSensorsRC qtrLeft, QTRSensorsRC qtrRight,
-  unsigned long leftSampleTime, unsigned long rightSampleTime, unsigned int *sensorWeights)
+  unsigned long leftSampleTime, unsigned long rightSampleTime, unsigned int *sensorWeights, LowPassFilter *pLowPassFilter)
 {
   setSensorArray(qtrArray);
   setSensorLeft(qtrLeft);
   setSensorRight(qtrRight);
   setSampleTimes(leftSampleTime, rightSampleTime);
   setSensorWeights(sensorWeights);
+  setLowPassFilter(pLowPassFilter);
+}
+
+
+void PrestoSensoring::setSensorArray(QTRSensorsRC qtrArray)
+{
+  m_QtrArray = qtrArray;
+  m_CenterPosition = ((m_QtrArray.getNumSensors() - 1) * 1000) / 2;
 }
 
 float PrestoSensoring::getInput()
 {
-  return erro_maximo*((m_QtrArray.readLine(m_SensorWeights, QTR_EMITTERS_ON, WHITE_LINE) - CENTER_POSITION)/CENTER_POSITION);
+  float sensorOutput = (m_QtrArray.readLine(m_SensorWeights, QTR_EMITTERS_ON, true) - m_CenterPosition) / m_CenterPosition;
+
+  if(m_pLowPassFilter == nullptr)
+    return sensorOutput;
+
+  return m_pLowPassFilter->run(sensorOutput);
+  //return erro_maximo * ((m_QtrArray.readLine(m_SensorWeights, QTR_EMITTERS_ON, WHITE_LINE) - CENTER_POSITION)/CENTER_POSITION);
 }
 
 void PrestoSensoring::setSampleTimes(unsigned long leftSampleTime, unsigned long rightSampleTime)
