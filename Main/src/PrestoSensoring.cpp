@@ -64,25 +64,34 @@ void PrestoSensoring::calibrate(Button commandButton, unsigned int statusLedPin)
 
 void PrestoSensoring::update()
 {
+  bool leftMark, rightMark;
+
   unsigned long now = millis();
   unsigned int value = 0;
   if((now - m_LastRun) > m_LeftSampleTime)
   {
     m_QtrLeft.readCalibrated(&value);
-    if (value < 100)
-    {
-      m_InCurve = !m_InCurve;
-    }
+    leftMark = value < 100;
   }
 
   if((now - m_LastRun) > m_RightSampleTime)
   {
     value = 0;
     m_QtrRight.readCalibrated(&value);
-    if (value < 100)
-    {
-      m_RightCount++;
-    }
+    rightMark = value < 100;
   }
   m_LastRun = now;
+
+  if(leftMark && rightMark) // Interseção da linha na pista
+  {
+    // Não faz nada :P
+  }
+  else if(!leftMark && rightMark) // Marca de inicio de prova
+  {
+    m_RightCount++;
+  }
+  else if(leftMark && !rightMark) // Marca de inicio/fim de curva
+  {
+    m_InCurve = !m_InCurve;
+  }
 }
