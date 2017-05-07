@@ -15,13 +15,17 @@ public:
   void setOutputLimits(float min, float max);
   void setTunings(float proportionalConstant, float integralConstant, float derivativeConstant);
 
-  float run(float intput);
+  virtual float run(float intput);
 
-private:
-	float m_IntegralConstant;
-	float m_DerivativeConstant;
-	float m_IntegrativeTermSum;
+protected:
 	float m_ProportionalConstant;
+	float m_DerivativeConstant;
+	float m_IntegralConstant;
+	float m_IntegrativeTermSum;
+	unsigned long m_Now;
+
+	bool checkTime(unsigned long *pDeltaTime);
+	float compute(float input, float proportionalConstant, float integralConstant, float derivativeConstant);
 };
 
 #endif // PIDController_hpp
