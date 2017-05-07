@@ -1,19 +1,19 @@
-#include "LowPassFilter.hpp"
+#include "SimpleMovingAverageFilter.hpp"
 #include <stdlib.h>
 
-LowPassFilter::LowPassFilter(unsigned int samplesCapacity) :
+SimpleMovingAverageFilter::SimpleMovingAverageFilter(unsigned int samplesCapacity) :
   m_SamplesCount(0),
   m_SamplesCapacity(samplesCapacity)
 {
   m_pSamples = (float*)malloc (samplesCapacity * sizeof(float));
 }
 
-LowPassFilter::~LowPassFilter()
+SimpleMovingAverageFilter::~SimpleMovingAverageFilter()
 {
   free(m_pSamples);
 }
 
-float LowPassFilter::run(float sample)
+float SimpleMovingAverageFilter::run(float sample)
 {
   if(++m_SamplesCount > m_SamplesCapacity)
   {

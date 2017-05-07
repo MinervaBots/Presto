@@ -9,12 +9,12 @@
 #include "PrestoMotorController.hpp"
 #include "PrestoSensoring.hpp"
 #include "Pins.h"
-#include "../lib/Filter/LowPassFilter.hpp"
+#include "../lib/Filter/SimpleMovingAverageFilter.hpp"
 
 volatile bool shouldStop;
 LineFollower presto;
 PrestoSensoring sensoring;
-LowPassFilter lowPassFilter(5);
+SimpleMovingAverageFilter simpleMovingAverageFilter(5);
 #ifdef USE_NON_LINEAR_PID
 NonLinearPIDController pidController;
 #else
@@ -37,7 +37,7 @@ void setup()
   sensoring.setSensorRight(QTRSensorsRC(SensorRightBorderPins, 1, 3000));
   sensoring.setSampleTimes(120, 150);
   sensoring.setSensorWeights(sensorWeights);
-  sensoring.setLowPassFilter(&lowPassFilter);
+  sensoring.setFilter(&simpleMovingAverageFilter);
 
   pidController.setSetPoint(0);
   pidController.setSampleTime(10);

@@ -4,21 +4,21 @@
 #include "../lib/InputSource/InputSource.hpp"
 #include "../lib/QTRSensors/QTRSensors.h"
 #include "../lib/Button/Button.h"
-#include "../lib/Filter/LowPassFilter.hpp"
+#include "../lib/Filter/SimpleMovingAverageFilter.hpp"
 
 class PrestoSensoring : public InputSource
 {
 public:
   PrestoSensoring();
   PrestoSensoring(QTRSensorsRC qtrArray, QTRSensorsRC qtrLeft, QTRSensorsRC qtrRight,
-    unsigned long leftSampleTime, unsigned long rightSampleTime, unsigned int *sensorWeights, LowPassFilter *pLowPassFilter);
+    unsigned long leftSampleTime, unsigned long rightSampleTime, unsigned int *sensorWeights, SimpleMovingAverageFilter *pLowPassFilter);
 
   void setSensorArray(QTRSensorsRC qtrArray);
   void setSensorLeft(QTRSensorsRC qtrLeft) { m_QtrLeft = qtrLeft; }
   void setSensorRight(QTRSensorsRC qtrRight) { m_QtrRight = qtrRight; }
   void setSampleTimes(unsigned long leftSampleTime, unsigned long rightSampleTime);
   void setSensorWeights(unsigned int *sensorWeights) { m_SensorWeights = sensorWeights; }
-  void setLowPassFilter(LowPassFilter *pLowPassFilter) { m_pLowPassFilter = pLowPassFilter; }
+  void setFilter(SimpleMovingAverageFilter *pSimpleMovingAverageFilter) { m_pSimpleMovingAverageFilter = pSimpleMovingAverageFilter; }
 
   void calibrate(Button commandButton, unsigned int statusLedPin);
 
@@ -42,7 +42,7 @@ private:
   QTRSensorsRC m_QtrLeft;
   QTRSensorsRC m_QtrRight;
 
-  LowPassFilter *m_pLowPassFilter;
+  SimpleMovingAverageFilter *m_pSimpleMovingAverageFilter;
 };
 
 #endif // PrestoSensoring_hpp
