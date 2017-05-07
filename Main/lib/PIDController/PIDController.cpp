@@ -1,12 +1,10 @@
 #include "PIDController.hpp"
-#include <MathHelper.h>
-#include <Arduino.h>
+#include "../MathHelper/MathHelper.h"
 
 PIDController::PIDController(int sampleTime, float setPoint, float minOutput, float maxOutput,
 									float proportionalConstant, float integralConstant, float derivativeConstant,
-								SystemControllerDirection controllerDirection)
+								SystemControllerDirection controllerDirection) : SystemController()
 {
-	m_LastRunTime = millis();
 	m_IntegrativeTermSum = 0;
 	setSampleTime(sampleTime);
 	setSetPoint(setPoint);
@@ -84,13 +82,6 @@ float PIDController::run(float input)
 	return compute(input, deltaTime, m_ProportionalConstant, m_IntegralConstant, m_DerivativeConstant);
 }
 
-bool PIDController::checkTime(unsigned long *pDeltaTime)
-{
-	m_Now = millis();
-	*pDeltaTime = (m_Now - m_LastRunTime);
-	return *pDeltaTime > m_SampleTime;
-}
-
 float PIDController::compute(float input, unsigned long deltaTime, float proportionalConstant, float integralConstant, float derivativeConstant)
 {
 	float error = m_SetPoint - input;
@@ -166,7 +157,7 @@ float PIDController::compute(float input, unsigned long deltaTime, float proport
 		m_IntegrativeTermSum += m_MinOutput - output;
 		output = m_MinOutput;
 	}
-
+	// TODO: Isso (^) ainda deve ser testado
 
 	// Salva os valores pra proxima execução
 	m_LastOutput = output;

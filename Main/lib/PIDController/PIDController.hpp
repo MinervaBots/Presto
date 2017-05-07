@@ -22,13 +22,11 @@ protected:
 	float m_DerivativeConstant;
 	float m_IntegralConstant;
 	float m_IntegrativeTermSum;
-	unsigned long m_Now;
 
   float m_LastOutput;
   float m_LastInput;
 	float m_LastError;
 
-	bool checkTime(unsigned long *pDeltaTime);
 	float compute(float input, unsigned long deltaTime, float proportionalConstant, float integralConstant, float derivativeConstant);
 };
 
