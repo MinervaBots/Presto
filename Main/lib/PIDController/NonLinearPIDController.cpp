@@ -48,5 +48,5 @@ float NonLinearPIDController::run(float input)
   float sigma = log(Ki1) / (log(Ki0) * pow(Ki0 * m_MaxError, 2));
   float nonLinearIntegrative = gama * exp(-sigma * pow(gama * error, 2));
 
-  return compute(input, nonLinearProportional, nonLinearIntegrative, nonLinearDerivative);
+  return compute(input, deltaTime, nonLinearProportional, nonLinearIntegrative, nonLinearDerivative);
 }

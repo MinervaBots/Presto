@@ -3,6 +3,8 @@
 
 void SystemController::setSampleTime(unsigned long newSampleTime)
 {
+  m_SampleTime = newSampleTime;
+  /*
   if(m_SampleTime == 0)
   {
     m_SampleTime = newSampleTime;
@@ -17,6 +19,7 @@ void SystemController::setSampleTime(unsigned long newSampleTime)
     Serial.println("[SystemController::setSampleTime]: newSampleTime não pode ser menor ou igual a zero");
     #endif
 	}
+  */
 }
 
 void SystemController::setOutputLimits(float min, float max)

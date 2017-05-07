@@ -6,7 +6,7 @@
 class PIDController : public SystemController
 {
 public:
-	PIDController() {}
+	PIDController() : PIDController(0, 0, 0, 255, 0, 0, 0, SystemControllerDirection::Direct) {}
 	PIDController(int sampleTime, float setPoint, float minOutput, float maxOutput,
 										float proportionalConstant, float integralConstant, float derivativeConstant,
 									SystemControllerDirection controllerDirection);
@@ -24,8 +24,12 @@ protected:
 	float m_IntegrativeTermSum;
 	unsigned long m_Now;
 
+  float m_LastOutput;
+  float m_LastInput;
+	float m_LastError;
+
 	bool checkTime(unsigned long *pDeltaTime);
-	float compute(float input, float proportionalConstant, float integralConstant, float derivativeConstant);
+	float compute(float input, unsigned long deltaTime, float proportionalConstant, float integralConstant, float derivativeConstant);
 };
 
 #endif // PIDController_hpp

@@ -20,8 +20,6 @@ public:
 protected:
   unsigned long m_SampleTime;
   float m_SetPoint;
-  float m_LastOutput;
-  float m_LastInput;
   float m_MinOutput;
   float m_MaxOutput;
   unsigned long m_LastRunTime;
