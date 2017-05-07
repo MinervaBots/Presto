@@ -1,7 +1,9 @@
 #ifndef SimpleMovingAverageFilter_hpp
 #define SimpleMovingAverageFilter_hpp
 
-class SimpleMovingAverageFilter
+#include "Filter.hpp"
+
+class SimpleMovingAverageFilter : public Filter
 {
 public:
   SimpleMovingAverageFilter(unsigned int samplesCapacity);
