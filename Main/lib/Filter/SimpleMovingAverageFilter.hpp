@@ -13,6 +13,7 @@ public:
 private:
   unsigned int m_SamplesCount;
   unsigned int m_SamplesCapacity;
+  unsigned int m_NextReplaced;
   float *m_pSamples;
 };
 
