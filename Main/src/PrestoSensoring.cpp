@@ -57,6 +57,9 @@ void PrestoSensoring::calibrate(Button commandButton, unsigned int statusLedPin)
     m_QtrLeft.calibrate();
   }
 
+  m_LeftSensorThreshold = (m_QtrLeft.getCalibratedMinimum(false)[0] + m_QtrLeft.getCalibratedMaximum(false)[0]) / 2;
+  m_RightSensorThreshold = (m_QtrRight.getCalibratedMinimum(false)[0] + m_QtrRight.getCalibratedMaximum(false)[0]) / 2;
+
 #ifdef DEBUG
   Serial.println("Calibração concluída");
 #endif
@@ -71,14 +74,14 @@ void PrestoSensoring::update()
   if((now - m_LastRun) > m_LeftSampleTime)
   {
     m_QtrLeft.readCalibrated(&value);
-    leftMark = value < 100;
+    leftMark = value < m_LeftSensorThreshold;
   }
 
   if((now - m_LastRun) > m_RightSampleTime)
   {
     value = 0;
     m_QtrRight.readCalibrated(&value);
-    rightMark = value < 100;
+    rightMark = value < m_RightSensorThreshold;
   }
   m_LastRun = now;
 

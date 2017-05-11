@@ -29,10 +29,13 @@ public:
   float getInput();
 
 private:
-  //float erro_maximo = 10.0;
   bool m_InCurve;
   unsigned long m_LeftSampleTime;
+  unsigned int m_LeftSensorThreshold;
+
   unsigned long m_RightSampleTime;
+  unsigned int m_RightSensorThreshold;
+
   unsigned int *m_SensorWeights;
   unsigned long m_LastRun;
   unsigned int m_RightCount;

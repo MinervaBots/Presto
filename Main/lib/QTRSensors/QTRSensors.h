@@ -127,7 +127,11 @@ class QTRSensors
     unsigned int *calibratedMaximumOff;
 
     ~QTRSensors();
+
     unsigned char getNumSensors() { return _numSensors; }
+    unsigned int* getCalibratedMinimum(bool emitter);
+    unsigned int* getCalibratedMaximum(bool emitter);
+
   protected:
 
     QTRSensors()

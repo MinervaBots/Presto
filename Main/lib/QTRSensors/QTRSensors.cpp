@@ -36,6 +36,23 @@
 #include <Arduino.h>
 
 
+unsigned int* QTRSensors::getCalibratedMinimum(bool emitter)
+{
+  if(emitter)
+  {
+    return calibratedMinimumOn;
+  }
+  return calibratedMinimumOff;
+}
+
+unsigned int* QTRSensors::getCalibratedMaximum(bool emitter)
+{
+  if(emitter)
+  {
+    return calibratedMaximumOn;
+  }
+  return calibratedMaximumOff;
+}
 
 // Base class data member initialization (called by derived class init())
 void QTRSensors::init(unsigned char *pins, unsigned char numSensors,
