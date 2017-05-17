@@ -1,9 +1,13 @@
 #include "../lib/LineFollower/LineFollower.hpp"
 
 #ifdef USE_NON_LINEAR_PID
+
 #include "../lib/PIDController/NonLinearPIDController.hpp"
+
 #else
+
 #include "../lib/PIDController/PIDController.hpp"
+
 #endif
 
 #include "PrestoMotorController.hpp"
@@ -15,10 +19,15 @@ volatile bool shouldStop;
 LineFollower presto;
 PrestoSensoring sensoring;
 SimpleMovingAverageFilter simpleMovingAverageFilter(5);
+
 #ifdef USE_NON_LINEAR_PID
+
 NonLinearPIDController pidController;
+
 #else
+
 PIDController pidController;
+
 #endif
 
 PrestoMotorController motorController;
@@ -28,7 +37,7 @@ unsigned int sensorWeights[sizeof(SensorArrayPins) / sizeof(char)];
 void setup()
 {
 #ifdef DEBUG
-    Serial.begin(9600);
+  Serial.begin(9600);
 #endif
   attachInterrupt(digitalPinToInterrupt(KILLSWITCH_PIN), killSwitch, HIGH);
 
@@ -41,22 +50,19 @@ void setup()
 
   pidController.setSetPoint(0);
   pidController.setSampleTime(10);
-  pidController.setOutputLimits(0, 255); // TODO - PWM?
+  pidController.setOutputLimits(-100, 100);
   pidController.setControllerDirection(SystemControllerDirection::Direct);
   pidController.setTunings(12, 40, 0.8);
 
-  #ifdef USE_NON_LINEAR_PID
+#ifdef USE_NON_LINEAR_PID
   pidController.setMaxError(10.0);
-  // Pra ficar de acordo com os ultimos valores na antiga versão
-  pidController.setNonLinearConstanteCoeficients(0.5, 2, 0.5, 2, 2);
-  #endif
+  pidController.setNonLinearConstanteCoeficients(0.5, 2, 0.5, 2, 2); // Pra ficar de acordo com os ultimos valores na antiga versão
+#endif
 
-  // TODO - Descomentar essa linha e colocar os pinos certos do motor
-  //motorController.setPins(L_MOTOR_1_PIN, L_MOTOR_2_PIN, R_MOTOR_1_PIN, R_MOTOR_2_PIN);
-  // TODO - Medir isso novamente. Por causa do encoder, as rodas podem ficar mais proximas
+
+  motorController.setPins(L_MOTOR_1_PIN, L_MOTOR_2_PIN, R_MOTOR_1_PIN, R_MOTOR_2_PIN);
   motorController.setWheelsRadius(0.185);
-  motorController.setWheelsDistance(0.143);
-  motorController.setVelocities(100, 60); // TODO - Porcentagens?
+  motorController.setWheelsDistance(0.143); // TODO - Medir isso novamente. Por causa do encoder, as rodas podem ficar mais proximas
 
   presto.setSystemController(&pidController);
   presto.setMotorController(&motorController);

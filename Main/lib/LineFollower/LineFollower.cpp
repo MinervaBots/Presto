@@ -29,9 +29,8 @@ void LineFollower::stop()
   m_pMotorController->stop();
 }
 
-
 void LineFollower::update()
 {
   float pidOutput = m_pSystemController->run(m_pInputSource->getInput());
-  m_pMotorController->move(100, pidOutput);
+  m_pMotorController->move(70, pidOutput);
 }
