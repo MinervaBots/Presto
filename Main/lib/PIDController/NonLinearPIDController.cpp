@@ -40,13 +40,14 @@ void NonLinearPIDController::calculateTunings()
     float Ki0 = m_NonLinearIntegrativeCoeficient0 * m_IntegralConstant;
     float Ki1 = m_NonLinearIntegrativeCoeficient1 * m_IntegralConstant;
 
-    //float Kd = m_NonLinearDerivativeCoeficient * m_DerivativeConstant;
+    float Kd = m_NonLinearDerivativeCoeficient * m_DerivativeConstant;
 
-    m_Alpha0 = (Kp1 - Kp0) / pow(m_MaxError, 2);
+    float sqMaxError = pow(m_MaxError, 2);
+
+    m_Alpha0 = (Kp1 - Kp0) / sqMaxError;
     m_Beta = Kp0;
 
-    // TODO - Se for m_MaxError pode descomentar essa linha
-    // m_Alpha1 = Kd / m_MaxError;
+    m_Alpha1 = (Kd) / sqMaxError;
 
     m_Gama = Ki0;
     m_Sigma = log(Ki1) / (log(Ki0) * pow(Ki0 * m_MaxError, 2));
@@ -64,15 +65,7 @@ float NonLinearPIDController::run(float input)
   float squaredError = pow(error, 2);
 
   float nonLinearProportional = m_Alpha0 * squaredError + m_Beta;
-
-  // Isso provavelmete está errado
-  // squaredError deve ser m_MaxError
-  // Dessa forma alpha1 = Kd
-  // TODO - Pesquisar mais sobre isso
-  float Kd = m_NonLinearDerivativeCoeficient * m_DerivativeConstant;
-  float alpha1 = Kd / squaredError;
-  float nonLinearDerivative = alpha1 * squaredError;
-
+  float nonLinearDerivative = m_Alpha1 * squaredError;
   float nonLinearIntegrative = m_Gama * exp(-m_Sigma * pow(m_Gama * error, 2));
 
   return compute(input, deltaTime, nonLinearProportional, nonLinearIntegrative, nonLinearDerivative);

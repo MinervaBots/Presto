@@ -23,6 +23,9 @@ private:
 
   float m_Alpha0;
   float m_Beta;
+
+  float m_Alpha1;
+
   float m_Gama;
   float m_Sigma;
 
