@@ -27,7 +27,7 @@ void PIDController::setSampleTime(int newSampleTime)
 void PIDController::setOutputLimits(float min, float max)
 {
   SystemController::setOutputLimits(min, max);
-  m_IntegrativeTermSum = clamp(m_IntegrativeTermSum, m_MinOutput, m_MaxOutput);
+  m_IntegrativeTermSum = constrain(m_IntegrativeTermSum, m_MinOutput, m_MaxOutput);
 }
 
 void PIDController::setTunings(float proportionalConstant, float integralConstant, float derivativeConstant)

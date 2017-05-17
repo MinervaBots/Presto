@@ -1,5 +1,5 @@
 #include "DifferentialDriveController.hpp"
-#include <math.h>
+#include "../MathHelper/MathHelper.h"
 
 DifferentialDriveController::DifferentialDriveController(float wheelsRadius, float wheelsDistance, Position* pPosition, WheelEncoder *pWheelEncoder)
 {
