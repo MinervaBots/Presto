@@ -9,6 +9,25 @@ DifferentialDriveController::DifferentialDriveController(float wheelsRadius, flo
   setEncoder(pWheelEncoder);
 }
 
+
+void DifferentialDriveController::setEncoder(WheelEncoder *pWheelEncoder)
+{
+  m_pWheelEncoder = pWheelEncoder;
+  if(m_pWheelEncoder != nullptr)
+  {
+    m_pWheelEncoder->setWheelRadius(m_WheelsRadius);
+  }
+}
+
+void DifferentialDriveController::setWheelsRadius(float wheelsRadius)
+{
+  m_WheelsRadius = wheelsRadius;
+  if(m_pWheelEncoder != nullptr)
+  {
+    m_pWheelEncoder->setWheelRadius(m_WheelsRadius);
+  }
+}
+
 void DifferentialDriveController::update()
 {
   m_pWheelEncoder->update();

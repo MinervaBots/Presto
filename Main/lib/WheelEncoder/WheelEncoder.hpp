@@ -4,9 +4,10 @@
 class WheelEncoder
 {
 public:
-  WheelEncoder() {}
-  WheelEncoder(int leftTickPin, int rightTickPin, float wheelRadius, unsigned int ticksPerRevolution);
+  WheelEncoder(char leftTickPin, char rightTickPin) : WheelEncoder(leftTickPin, rightTickPin, 0, 0) {}
+  WheelEncoder(char leftTickPin, char rightTickPin, float wheelRadius, unsigned int ticksPerRevolution);
   void update();
+
   void setWheelRadius(float wheelRadius) { m_WheelRadius = wheelRadius; }
   void setTicksPerRevolution(unsigned int ticksPerRevolution) { m_TicksPerRevolution = ticksPerRevolution; }
 
@@ -19,8 +20,6 @@ public:
   float getDeltaDistanceLeft() { return m_DeltaDistanceRight; }
 
 private:
-  static WheelEncoder *m_pInstance;
-
   float m_WheelRadius;
   unsigned int m_TicksPerRevolution;
 

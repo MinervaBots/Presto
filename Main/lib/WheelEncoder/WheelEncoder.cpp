@@ -1,9 +1,14 @@
 #include "WheelEncoder.hpp"
 #include <Arduino.h>
 
-WheelEncoder::WheelEncoder(int leftTickPin, int rightTickPin, float wheelRadius, unsigned int ticksPerRevolution)
+namespace WheelEncoderPrivate
 {
-  m_pInstance = this;
+  static WheelEncoder *m_pWheelEncoderInstance;
+}
+
+WheelEncoder::WheelEncoder(char leftTickPin, char rightTickPin, float wheelRadius, unsigned int ticksPerRevolution)
+{
+  WheelEncoderPrivate::m_pWheelEncoderInstance = this;
   setWheelRadius(wheelRadius);
   setTicksPerRevolution(ticksPerRevolution);
   pinMode(leftTickPin, INPUT);
@@ -14,12 +19,12 @@ WheelEncoder::WheelEncoder(int leftTickPin, int rightTickPin, float wheelRadius,
 
 void WheelEncoder::leftTick()
 {
-  m_pInstance->m_DeltaLeftTickCount++;
+  WheelEncoderPrivate::m_pWheelEncoderInstance->m_DeltaLeftTickCount++;
 }
 
 void WheelEncoder::rightTick()
 {
-  m_pInstance->m_DeltaRightTickCount++;
+  WheelEncoderPrivate::m_pWheelEncoderInstance->m_DeltaRightTickCount++;
 }
 
 void WheelEncoder::update()

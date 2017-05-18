@@ -27,9 +27,9 @@ public:
   float getRightVelocity() { return m_RightVelocity; }
 
 
-  void setWheelsRadius(float wheelsRadius) { m_WheelsRadius = wheelsRadius; }
+  void setWheelsRadius(float wheelsRadius);
   void setWheelsDistance(float wheelsDistance) { m_WheelsDistance = wheelsDistance; }
-  void setEncoder(WheelEncoder *pWheelEncoder) { m_pWheelEncoder = pWheelEncoder; }
+  void setEncoder(WheelEncoder *pWheelEncoder);
   void setPositionPointer(Position *pPosition) { m_pPosition = pPosition; }
 
 private:
