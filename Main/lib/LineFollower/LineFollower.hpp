@@ -20,7 +20,9 @@ public:
   void stop();
   void update();
 
+  bool getIsRunning() { return m_IsRunning; }
 private:
+  bool m_IsRunning;
   InputSource *m_pInputSource;
   SystemController *m_pSystemController;
   MotorController *m_pMotorController;

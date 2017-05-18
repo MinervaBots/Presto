@@ -20,6 +20,7 @@ LineFollower::~LineFollower()
 
 void LineFollower::start()
 {
+  m_IsRunning = true;
   m_StartTime = millis();
 }
 
@@ -27,6 +28,7 @@ void LineFollower::stop()
 {
   m_StopTime = millis();
   m_pMotorController->stop();
+  m_IsRunning = false;
 }
 
 void LineFollower::update()
