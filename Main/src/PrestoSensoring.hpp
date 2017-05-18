@@ -20,7 +20,7 @@ public:
   void setSensorWeights(unsigned int *sensorWeights) { m_SensorWeights = sensorWeights; }
   void setFilter(Filter *pFilter) { m_pFilter = pFilter; }
 
-  void calibrate(Button commandButton, unsigned int statusLedPin);
+  void calibrate(Button commandButton, unsigned char statusLedPin);
 
   void update();
   bool shouldStop() { return m_RightCount >= 2; }

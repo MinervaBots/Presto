@@ -1,4 +1,5 @@
 #include "PrestoSensoring.hpp"
+#include "../lib/Logger/Logger.hpp"
 
 PrestoSensoring::PrestoSensoring()
 {
@@ -40,12 +41,12 @@ void PrestoSensoring::setSampleTimes(unsigned long leftSampleTime, unsigned long
   m_RightSampleTime = rightSampleTime;
 }
 
-void PrestoSensoring::calibrate(Button commandButton, unsigned int statusLedPin)
+void PrestoSensoring::calibrate(Button commandButton, unsigned char statusLedPin)
 {
   while(!commandButton.isPressed());
 
 #ifdef DEBUG
-  Serial.println("Iniciando calibração");
+  Logger::CurrentLogger->WriteLine("Iniciando calibração");
 #endif
 
   digitalWrite(statusLedPin, HIGH);
@@ -61,8 +62,18 @@ void PrestoSensoring::calibrate(Button commandButton, unsigned int statusLedPin)
   m_RightSensorThreshold = (m_QtrRight.getCalibratedMinimum(false)[0] + m_QtrRight.getCalibratedMaximum(false)[0]) / 2;
 
 #ifdef DEBUG
-  Serial.println("Calibração concluída");
+  Logger::CurrentLogger->WriteLine("Calibração concluída");
 #endif
+
+  digitalWrite(statusLedPin, HIGH);
+  delay(500);
+  digitalWrite(statusLedPin, LOW);
+
+  // Espera apertar de novo pra começar o loop
+  while(!commandButton.isPressed());
+  digitalWrite(statusLedPin, HIGH);
+  delay(500);
+  digitalWrite(statusLedPin, LOW);
 }
 
 void PrestoSensoring::update()

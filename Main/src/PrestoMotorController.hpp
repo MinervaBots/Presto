@@ -11,24 +11,29 @@ class PrestoMotorController : public DifferentialDriveController
 {
 public:
   bool inCurve;
-  PrestoMotorController();
-  PrestoMotorController(unsigned int leftInPin1, unsigned int leftInPin2,
-    unsigned int rightInPin1, unsigned int rightInPin2,
+  PrestoMotorController(unsigned char leftInPin1, unsigned char leftInPin2,
+    unsigned char rightInPin1, unsigned char rightInPin2) :
+      PrestoMotorController(leftInPin1, leftInPin2, rightInPin1, rightInPin2, 0, 0, nullptr) {}
+
+  PrestoMotorController(unsigned char leftInPin1, unsigned char leftInPin2,
+    unsigned char rightInPin1, unsigned char rightInPin2,
     float wheelsRadius, float wheelsDistance, WheelEncoder *pWheelEncoder);
 
-  void setPins(unsigned int leftInPin1, unsigned int leftInPin2,
-    unsigned int rightInPin1, unsigned int rightInPin2);
   void setVelocities(float maxVelocity, float inCurveVelocity);
 
   void stop();
   void move(float linearVelocity, float angularVelocity);
 
-private:
-  unsigned int m_LeftInPin1;
-  unsigned int m_LeftInPin2;
+protected:
+  void setPins(unsigned char leftInPin1, unsigned char leftInPin2,
+    unsigned char rightInPin1, unsigned char rightInPin2);
 
-  unsigned int m_RightInPin1;
-  unsigned int m_RightInPin2;
+private:
+  unsigned char m_LeftInPin1;
+  unsigned char m_LeftInPin2;
+
+  unsigned char m_RightInPin1;
+  unsigned char m_RightInPin2;
 
   unsigned int m_LeftPwm;
   unsigned int m_RightPwm;

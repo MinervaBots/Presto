@@ -2,21 +2,16 @@
 #include "../lib/MathHelper/MathHelper.h"
 #include <Arduino.h>
 
-PrestoMotorController::PrestoMotorController()
-{
-
-}
-
-PrestoMotorController::PrestoMotorController(unsigned int leftInPin1, unsigned int leftInPin2,
-  unsigned int rightInPin1, unsigned int rightInPin2,
+PrestoMotorController::PrestoMotorController(unsigned char leftInPin1, unsigned char leftInPin2,
+  unsigned char rightInPin1, unsigned char rightInPin2,
   float wheelsRadius, float wheelsDistance, WheelEncoder *pWheelEncoder) :
   DifferentialDriveController(wheelsRadius, wheelsDistance, nullptr, pWheelEncoder)
 {
   setPins(leftInPin1, leftInPin2, rightInPin1, rightInPin2);
 }
 
-void PrestoMotorController::setPins(unsigned int leftInPin1, unsigned int leftInPin2,
-  unsigned int rightInPin1, unsigned int rightInPin2)
+void PrestoMotorController::setPins(unsigned char leftInPin1, unsigned char leftInPin2,
+  unsigned char rightInPin1, unsigned char rightInPin2)
 {
   m_LeftInPin1 = leftInPin1;
   m_LeftInPin2 = leftInPin2;
