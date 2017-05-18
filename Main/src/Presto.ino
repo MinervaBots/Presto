@@ -1,36 +1,35 @@
+#include "CompilerDefinitions.h"
 #include "../lib/LineFollower/LineFollower.hpp"
-
-#ifdef USE_NON_LINEAR_PID
-
-#include "../lib/PIDController/NonLinearPIDController.hpp"
-
-#else
-
-#include "../lib/PIDController/PIDController.hpp"
-
-#endif
-
 #include "PrestoMotorController.hpp"
 #include "PrestoSensoring.hpp"
 #include "Pins.h"
-#include "../lib/Filter/SimpleMovingAverageFilter.hpp"
 
 volatile bool shouldStop;
 LineFollower presto;
 PrestoSensoring sensoring;
-SimpleMovingAverageFilter simpleMovingAverageFilter(5);
+Button commandButton(COMMAND_BUTTON_PIN, PULLDOWN);
 
-#ifdef USE_NON_LINEAR_PID
-
-NonLinearPIDController pidController;
-
-#else
-
-PIDController pidController;
-
+#ifdef FILTER_SAMPLES
+  #include "../lib/Filter/SimpleMovingAverageFilter.hpp"
+  SimpleMovingAverageFilter simpleMovingAverageFilter(FILTER_SAMPLES);
 #endif
 
-PrestoMotorController motorController;
+#ifdef USE_NON_LINEAR_PID
+  #include "../lib/PIDController/NonLinearPIDController.hpp"
+  NonLinearPIDController pidController;
+#else
+  #include "../lib/PIDController/PIDController.hpp"
+  PIDController pidController;
+#endif
+
+WheelEncoder encoder(0, 0); // TODO: Ver qual o pino do encoder
+PrestoMotorController motorController(L_MOTOR_1_PIN, L_MOTOR_2_PIN, R_MOTOR_1_PIN, R_MOTOR_2_PIN);
+
+#ifdef DEBUG
+
+BufferLogger logger(1024);
+
+#endif
 
 unsigned int sensorWeights[sizeof(SensorArrayPins) / sizeof(char)];
 
@@ -46,7 +45,10 @@ void setup()
   sensoring.setSensorRight(QTRSensorsRC(SensorRightBorderPins, 1, 3000));
   sensoring.setSampleTimes(120, 150);
   sensoring.setSensorWeights(sensorWeights);
+
+#ifdef FILTER_SAMPLES
   sensoring.setFilter(&simpleMovingAverageFilter);
+#endif
 
   pidController.setSetPoint(0);
   pidController.setSampleTime(10);
@@ -59,29 +61,49 @@ void setup()
   pidController.setNonLinearConstanteCoeficients(0.5, 2, 0.5, 2, 2); // Pra ficar de acordo com os ultimos valores na antiga versão
 #endif
 
-
-  motorController.setPins(L_MOTOR_1_PIN, L_MOTOR_2_PIN, R_MOTOR_1_PIN, R_MOTOR_2_PIN);
+  encoder.setTicksPerRevolution(12);
+  motorController.setEncoder(&encoder);
   motorController.setWheelsRadius(0.185);
   motorController.setWheelsDistance(0.143); // TODO - Medir isso novamente. Por causa do encoder, as rodas podem ficar mais proximas
 
   presto.setSystemController(&pidController);
   presto.setMotorController(&motorController);
-
-  sensoring.calibrate(Button(COMMAND_BUTTON_PIN, PULLDOWN), STATUS_LED_PIN);
-
   presto.setInputSource(&sensoring);
+
+  sensoring.calibrate(commandButton, STATUS_LED_PIN);
   presto.start();
 }
 
 
 void loop()
 {
-  sensoring.update();
+#ifdef DEBUG
+  logger.Flush(Serial.println);
+#endif
+
   if(sensoring.shouldStop() || shouldStop)
   {
-    presto.stop();
+    if(presto.getIsRunning())
+    {
+      presto.stop();
+#ifdef DEBUG
+      logger.WriteLine("Fim do percurso");
+#endif
+    }
+    else
+    {
+#ifdef DEBUG
+      while(!commandButton.isPressed());
+      logger.Write("Encoder: ");
+        logger.WriteLine(encoder.getTotalDistanceLeft());
+
+      logger.WriteLine("Enviando dados");
+#endif
+    }
     return;
   }
+
+  sensoring.update();
   motorController.inCurve = sensoring.inCurve();
   presto.update();
 }
