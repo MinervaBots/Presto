@@ -1,8 +1,8 @@
-#include "CompilerDefinitions.h"
-#include "../lib/LineFollower/LineFollower.hpp"
-#include "PrestoMotorController.hpp"
-#include "PrestoSensoring.hpp"
 #include "Pins.h"
+#include "PrestoSensoring.hpp"
+#include "CompilerDefinitions.h"
+#include "PrestoMotorController.hpp"
+#include "../lib/LineFollower/LineFollower.hpp"
 
 volatile bool shouldStop;
 LineFollower presto;
@@ -26,12 +26,9 @@ WheelEncoder encoder(0, 0); // TODO: Ver qual o pino do encoder
 PrestoMotorController motorController(L_MOTOR_1_PIN, L_MOTOR_2_PIN, R_MOTOR_1_PIN, R_MOTOR_2_PIN);
 
 #ifdef DEBUG
-
-BufferLogger logger(1024);
-
+  BufferLogger logger(1024);
 #endif
 
-unsigned int sensorWeights[sizeof(SensorArrayPins) / sizeof(char)];
 
 void setup()
 {
@@ -44,7 +41,7 @@ void setup()
   sensoring.setSensorLeft(QTRSensorsRC(SensorLeftBorderPins, 1, 3000));
   sensoring.setSensorRight(QTRSensorsRC(SensorRightBorderPins, 1, 3000));
   sensoring.setSampleTimes(120, 150);
-  sensoring.setSensorWeights(sensorWeights);
+  //sensoring.setSensorWeights(sensorWeights);
 
 #ifdef FILTER_SAMPLES
   sensoring.setFilter(&simpleMovingAverageFilter);

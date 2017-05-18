@@ -7,13 +7,12 @@ PrestoSensoring::PrestoSensoring()
 }
 
 PrestoSensoring::PrestoSensoring(QTRSensorsRC qtrArray, QTRSensorsRC qtrLeft, QTRSensorsRC qtrRight,
-  unsigned long leftSampleTime, unsigned long rightSampleTime, unsigned int *sensorWeights, Filter *pFilter)
+  unsigned long leftSampleTime, unsigned long rightSampleTime, Filter *pFilter)
 {
   setSensorArray(qtrArray);
   setSensorLeft(qtrLeft);
   setSensorRight(qtrRight);
   setSampleTimes(leftSampleTime, rightSampleTime);
-  setSensorWeights(sensorWeights);
   setFilter(pFilter);
 }
 
@@ -21,6 +20,7 @@ PrestoSensoring::PrestoSensoring(QTRSensorsRC qtrArray, QTRSensorsRC qtrLeft, QT
 void PrestoSensoring::setSensorArray(QTRSensorsRC qtrArray)
 {
   m_QtrArray = qtrArray;
+  m_SensorWeights = new unsigned int[m_QtrArray.getNumSensors()];
   m_CenterPosition = ((m_QtrArray.getNumSensors() - 1) * 1000) / 2;
 }
 

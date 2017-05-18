@@ -11,14 +11,14 @@ class PrestoSensoring : public InputSource
 public:
   PrestoSensoring();
   PrestoSensoring(QTRSensorsRC qtrArray, QTRSensorsRC qtrLeft, QTRSensorsRC qtrRight,
-    unsigned long leftSampleTime, unsigned long rightSampleTime, unsigned int *sensorWeights, Filter *pFilter);
+    unsigned long leftSampleTime, unsigned long rightSampleTime, Filter *pFilter);
 
   void setSensorArray(QTRSensorsRC qtrArray);
   void setSensorLeft(QTRSensorsRC qtrLeft) { m_QtrLeft = qtrLeft; }
   void setSensorRight(QTRSensorsRC qtrRight) { m_QtrRight = qtrRight; }
   void setSampleTimes(unsigned long leftSampleTime, unsigned long rightSampleTime);
-  void setSensorWeights(unsigned int *sensorWeights) { m_SensorWeights = sensorWeights; }
   void setFilter(Filter *pFilter) { m_pFilter = pFilter; }
+  unsigned int *getSensorWeights() { return m_SensorWeights; }
 
   void calibrate(Button commandButton, unsigned char statusLedPin);
 
