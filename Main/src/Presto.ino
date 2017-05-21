@@ -11,7 +11,8 @@ Button commandButton(COMMAND_BUTTON_PIN, PULLDOWN);
 
 #ifdef FILTER_SAMPLES
   #include "../lib/Filter/SimpleMovingAverageFilter.hpp"
-  SimpleMovingAverageFilter simpleMovingAverageFilter(FILTER_SAMPLES);
+  SimpleMovingAverageFilter simpleMovingAverageFilter(FILTER_SAMPLES,
+    SimpleMovingAverageFilter::FilterMode::Static);
 #endif
 
 #ifdef USE_NON_LINEAR_PID
@@ -37,16 +38,6 @@ void setup()
 #endif
   attachInterrupt(digitalPinToInterrupt(KILLSWITCH_PIN), killSwitch, HIGH);
 
-  sensoring.setSensorArray(QTRSensorsRC(SensorArrayPins, sizeof(SensorArrayPins) / sizeof(char), 200));
-  sensoring.setSensorLeft(QTRSensorsRC(SensorLeftBorderPins, 1, 3000));
-  sensoring.setSensorRight(QTRSensorsRC(SensorRightBorderPins, 1, 3000));
-  sensoring.setSampleTimes(120, 150);
-  //sensoring.setSensorWeights(sensorWeights);
-
-#ifdef FILTER_SAMPLES
-  sensoring.setFilter(&simpleMovingAverageFilter);
-#endif
-
   pidController.setSetPoint(0);
   pidController.setSampleTime(10);
   pidController.setOutputLimits(-100, 100);
@@ -57,15 +48,25 @@ void setup()
   pidController.setMaxError(10.0);
   pidController.setNonLinearConstanteCoeficients(0.5, 2, 0.5, 2, 2); // Pra ficar de acordo com os ultimos valores na antiga versão
 #endif
+  presto.setSystemController(&pidController);
 
   encoder.setTicksPerRevolution(12);
   motorController.setEncoder(&encoder);
   motorController.setWheelsRadius(0.185);
   motorController.setWheelsDistance(0.143); // TODO - Medir isso novamente. Por causa do encoder, as rodas podem ficar mais proximas
-
-  presto.setSystemController(&pidController);
   presto.setMotorController(&motorController);
+
+  sensoring.setSensorArray(QTRSensorsRC(SensorArrayPins, sizeof(SensorArrayPins) / sizeof(char), 200));
+  sensoring.setSensorLeft(QTRSensorsRC(SensorLeftBorderPins, 1, 3000));
+  sensoring.setSensorRight(QTRSensorsRC(SensorRightBorderPins, 1, 3000));
+  sensoring.setSampleTimes(120, 150);
+
+#ifdef FILTER_SAMPLES
+  simpleMovingAverageFilter.setInputSource(&sensoring);
+  presto.setInputSource(&simpleMovingAverageFilter);
+#else
   presto.setInputSource(&sensoring);
+#endif
 
   sensoring.calibrate(commandButton, STATUS_LED_PIN);
   presto.start();

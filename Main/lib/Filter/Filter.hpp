@@ -1,10 +1,12 @@
 #ifndef Filter_hpp
 #define Filter_hpp
 
-class Filter
+#include "../InputSource/InputSource.hpp"
+
+class Filter : public InputSource
 {
 public:
-  virtual float run(float sample) = 0;
+  virtual float getInput() = 0;
 };
 
 #endif //Filter_hpp
