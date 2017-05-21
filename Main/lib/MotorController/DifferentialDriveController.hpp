@@ -28,7 +28,7 @@ public:
 
 
   void setWheelsRadius(float wheelsRadius);
-  void setWheelsDistance(float wheelsDistance) { m_WheelsDistance = wheelsDistance; }
+  void setWheelsDistance(float wheelsDistance);
   void setEncoder(WheelEncoder *pWheelEncoder);
   void setPositionPointer(Position *pPosition) { m_pPosition = pPosition; }
 

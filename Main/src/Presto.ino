@@ -87,6 +87,7 @@ void loop()
 #ifdef DEBUG
       while(!commandButton.isPressed());
       logger.WriteLine("Encoder: %f.3", encoder.getTotalDistanceLeft());
+      logger.WriteLine("Tempo de prova: %d ms", presto.getStartTime() - presto.getStopTime());
       logger.WriteLine("Enviando dados");
 #endif
     }

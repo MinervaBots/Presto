@@ -20,16 +20,25 @@ void PrestoSensoring::setSensorArray(QTRSensorsRC qtrArray)
 {
   m_QtrArray = qtrArray;
   m_SensorWeights = new unsigned int[m_QtrArray.getNumSensors()];
+
+  // Calcula qual o valor central que o array retorna
+  // Como QTRSensor retorna o número [0..n-1] do sensor * 1000:
   m_CenterPosition = ((m_QtrArray.getNumSensors() - 1) * 1000) / 2;
 }
 
 float PrestoSensoring::getInput()
 {
+  // Normaliza a saída do array pra um valor entre -1 e 1
+  // Dessa forma quando estiver centralizado na linha o resultado é 0
+  // Estando deslocado para a direita o resultado é < 0
+  // e para a esquerda > 0
   return (m_QtrArray.readLine(m_SensorWeights, QTR_EMITTERS_ON, true) - m_CenterPosition) / m_CenterPosition;
 }
 
 void PrestoSensoring::setSampleTimes(unsigned long leftSampleTime, unsigned long rightSampleTime)
 {
+  // O tempo entre loops do código pode ser muito pequeno e a mesma marca pode ser lida várias vezes.
+  // Pra isso definimos esses tempos como o mínimo entre uma leitura e outra
   m_LeftSampleTime = leftSampleTime;
   m_RightSampleTime = rightSampleTime;
 }
@@ -39,7 +48,7 @@ void PrestoSensoring::calibrate(Button commandButton, unsigned char statusLedPin
   while(!commandButton.isPressed());
 
 #ifdef DEBUG
-  Logger::CurrentLogger->WriteLine("Iniciando calibração");
+  CurrentLogger->WriteLine("Iniciando calibração");
 #endif
 
   digitalWrite(statusLedPin, HIGH);
@@ -50,12 +59,13 @@ void PrestoSensoring::calibrate(Button commandButton, unsigned char statusLedPin
     m_QtrRight.calibrate();
     m_QtrLeft.calibrate();
   }
-
+  // Calcula a média entre o máximo e o mínimo que foi lido nesse sensores, com isso temos
+  // uma referência para comparar se foi lido ou não, já que esses são sensores analógicos.
   m_LeftSensorThreshold = (m_QtrLeft.getCalibratedMinimum(false)[0] + m_QtrLeft.getCalibratedMaximum(false)[0]) / 2;
   m_RightSensorThreshold = (m_QtrRight.getCalibratedMinimum(false)[0] + m_QtrRight.getCalibratedMaximum(false)[0]) / 2;
 
 #ifdef DEBUG
-  Logger::CurrentLogger->WriteLine("Calibração concluída");
+  CurrentLogger->WriteLine("Calibração concluída");
 #endif
 
   digitalWrite(statusLedPin, HIGH);
@@ -75,6 +85,8 @@ void PrestoSensoring::update()
 
   unsigned long now = millis();
   unsigned int value = 0;
+
+  // Usa os tempos de amostragem para garantir que não estamos lendo a mesma marca várias vezes
   if((now - m_LastRun) > m_LeftSampleTime)
   {
     m_QtrLeft.readCalibrated(&value);
@@ -89,6 +101,7 @@ void PrestoSensoring::update()
   }
   m_LastRun = now;
 
+  // TODO - Verificar se isso está certo
   if(leftMark && rightMark) // Interseção da linha na pista
   {
     // Não faz nada :P

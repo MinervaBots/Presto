@@ -22,6 +22,9 @@ public:
   void update();
 
   bool getIsRunning() { return m_IsRunning; }
+  unsigned long getStartTime() { return m_StartTime; }
+  unsigned long getStopTime() { return m_StopTime; }
+
 private:
   bool m_IsRunning;
   InputSource *m_pInputSource;

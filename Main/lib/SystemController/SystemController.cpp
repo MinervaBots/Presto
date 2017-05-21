@@ -1,4 +1,5 @@
 #include "SystemController.hpp"
+#include "../Logger/Logger.hpp"
 
 void SystemController::setSampleTime(unsigned long newSampleTime)
 {
@@ -25,9 +26,9 @@ void SystemController::setOutputLimits(float min, float max)
 {
 	if (min > max)
 	{
-    #ifdef USE_SERIAL
-    Serial.println("[SystemController::setOutputLimits]: min não pode ser maior que max");
-    #endif
+#ifdef DEBUG
+    CurrentLogger->WriteLine("[SystemController::setOutputLimits]: min não pode ser maior que max");
+#endif
 	}
 	m_MinOutput = min;
 	m_MaxOutput = max;

@@ -4,16 +4,12 @@
 #include <string.h>
 
 class Logger;
-
-namespace Log
-{
-    static Logger *CurrentLogger;
-}
+static Logger *CurrentLogger;
 
 class Logger
 {
 public:
-  Logger() { Log::CurrentLogger = this; }
+  Logger() { CurrentLogger = this; }
   virtual void Write(const char* format, ...) = 0;
   virtual void WriteLine(const char* format, ...) = 0;
 };

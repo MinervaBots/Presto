@@ -21,11 +21,31 @@ void DifferentialDriveController::setEncoder(WheelEncoder *pWheelEncoder)
 
 void DifferentialDriveController::setWheelsRadius(float wheelsRadius)
 {
+#ifdef DEBUG
+  if(wheelsRadius <= 0)
+  {
+    CurrentLogger->WriteLine("[DifferentialDriveController::setWheelsRadius] O raio das rodas não pode ser menor ou igual a 0");
+    return;
+  }
+#endif
   m_WheelsRadius = wheelsRadius;
   if(m_pWheelEncoder != nullptr)
   {
     m_pWheelEncoder->setWheelRadius(m_WheelsRadius);
   }
+}
+
+
+void DifferentialDriveController::setWheelsDistance(float wheelsDistance)
+{
+#ifdef DEBUG
+  if(wheelsDistance <= 0)
+  {
+    CurrentLogger->WriteLine("[DifferentialDriveController::setWheelsDistance] A distância entre as rodas deve ser maior ou igual a 0");
+    return;
+  }
+#endif
+  m_WheelsDistance = wheelsDistance;
 }
 
 void DifferentialDriveController::update()

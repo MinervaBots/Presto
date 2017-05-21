@@ -10,6 +10,8 @@
 
 #else
 
+// O Arduino já tem esse método, mas se algum dia movermos para outro microcontrolador
+// como PIC ou ARM, é bom manter
 inline float constrain(float value, float min, float max)
 {
 	if (value < min)
@@ -21,40 +23,12 @@ inline float constrain(float value, float min, float max)
 
 #endif
 
+// Interpolação linear entre 'start' e 'end' em função de 't'
+// Quanto 't == 0', retorna 'start'. 't == 1' retorna 'end'...
+// https://pt.wikipedia.org/wiki/Interpola%C3%A7%C3%A3o_linear
 inline float lerp(float start, float end, float t)
 {
 	return ((1 - t) * start) + (end * t);
 }
-/*
-inline float min(float a, float b)
-{
-	if(a < b) return a;
-	return b;
-}
 
-inline float max(float a, float b)
-{
-	if(a > b) return a;
-	return b;
-}
-
-inline float pow(float value, float power)
-{
-	if(power == 0)
-		return 1;
-	else if(power == 1)
-		return value;
-
-	for (int i = 0; i < power; i++)
-	{
-		value *= value;
-	}
-	return value;
-}
-
-inline float sqrt(int value)
-{
-
-}
-*/
 #endif // MathHelper_h
