@@ -3,17 +3,13 @@
 #include "CompilerDefinitions.h"
 #include "PrestoMotorController.hpp"
 #include "../lib/LineFollower/LineFollower.hpp"
+#include "../lib/Filter/SimpleMovingAverageFilter.hpp"
 
 volatile bool shouldStop;
 LineFollower presto;
 PrestoSensoring sensoring;
 Button commandButton(COMMAND_BUTTON_PIN, PULLDOWN);
-
-#ifdef FILTER_SAMPLES
-  #include "../lib/Filter/SimpleMovingAverageFilter.hpp"
-  SimpleMovingAverageFilter simpleMovingAverageFilter(FILTER_SAMPLES,
-    SimpleMovingAverageFilter::FilterMode::Static);
-#endif
+SimpleMovingAverageFilter simpleMovingAverageFilter(5);
 
 #ifdef USE_NON_LINEAR_PID
   #include "../lib/PIDController/NonLinearPIDController.hpp"
@@ -27,6 +23,7 @@ WheelEncoder encoder(0, 0); // TODO: Ver qual o pino do encoder
 PrestoMotorController motorController(L_MOTOR_1_PIN, L_MOTOR_2_PIN, R_MOTOR_1_PIN, R_MOTOR_2_PIN);
 
 #ifdef DEBUG
+  #include "../lib/Logger/BufferLogger.hpp"
   BufferLogger logger(1024);
 #endif
 
@@ -61,12 +58,8 @@ void setup()
   sensoring.setSensorRight(QTRSensorsRC(SensorRightBorderPins, 1, 3000));
   sensoring.setSampleTimes(120, 150);
 
-#ifdef FILTER_SAMPLES
   simpleMovingAverageFilter.setInputSource(&sensoring);
   presto.setInputSource(&simpleMovingAverageFilter);
-#else
-  presto.setInputSource(&sensoring);
-#endif
 
   sensoring.calibrate(commandButton, STATUS_LED_PIN);
   presto.start();
@@ -76,7 +69,8 @@ void setup()
 void loop()
 {
 #ifdef DEBUG
-  logger.Flush(Serial.println);
+  Serial.println(logger.getBuffer());
+  logger.Flush();
 #endif
 
   if(sensoring.shouldStop() || shouldStop)
@@ -92,9 +86,7 @@ void loop()
     {
 #ifdef DEBUG
       while(!commandButton.isPressed());
-      logger.Write("Encoder: ");
-        logger.WriteLine(encoder.getTotalDistanceLeft());
-
+      logger.WriteLine("Encoder: %f.3", encoder.getTotalDistanceLeft());
       logger.WriteLine("Enviando dados");
 #endif
     }

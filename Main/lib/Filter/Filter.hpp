@@ -7,6 +7,10 @@ class Filter : public InputSource
 {
 public:
   virtual float getInput() = 0;
+  virtual void setInputSource(InputSource* pInputSource) { m_pInputSource = pInputSource; }
+
+protected:
+  InputSource *m_pInputSource;
 };
 
 #endif //Filter_hpp

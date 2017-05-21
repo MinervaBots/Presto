@@ -3,14 +3,19 @@
 
 #include <string.h>
 
+class Logger;
+
+namespace Log
+{
+    static Logger *CurrentLogger;
+}
+
 class Logger
 {
 public:
-  Logger() { CurrentLogger = this; }
-  virtual void Write(char *text) = 0;
-  virtual void WriteLine(char *text) = 0;
-
-  static Logger *CurrentLogger;
+  Logger() { Log::CurrentLogger = this; }
+  virtual void Write(const char* format, ...) = 0;
+  virtual void WriteLine(const char* format, ...) = 0;
 };
 
 #endif // Logger_hpp

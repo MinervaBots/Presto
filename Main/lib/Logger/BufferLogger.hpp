@@ -8,10 +8,10 @@ class BufferLogger : public Logger
 public:
   BufferLogger(unsigned int bufferSize);
   ~BufferLogger();
-  void Write(char *text);
-  void WriteLine(char *text);
-  virtual void Flush(void (*f)(char*));
-
+  void Write(const char* format, ...);
+  void WriteLine(const char* format, ...);
+  virtual void Flush();
+  const char *getBuffer() { return m_LogsBuffer; }
 private:
   char *m_LogsBuffer;
   unsigned int m_BufferPosition;
