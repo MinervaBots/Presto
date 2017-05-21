@@ -24,7 +24,8 @@ PrestoMotorController motorController(L_MOTOR_1_PIN, L_MOTOR_2_PIN, R_MOTOR_1_PI
 
 #ifdef DEBUG
   #include "../lib/Logger/BufferLogger.hpp"
-  BufferLogger logger(1024);
+  BufferLogger logger(256);
+  void commandHandlers();
 #endif
 
 
@@ -69,6 +70,7 @@ void setup()
 void loop()
 {
 #ifdef DEBUG
+  commandHandler();
   Serial.println(logger.getBuffer());
   logger.Flush();
 #endif
@@ -88,7 +90,10 @@ void loop()
       while(!commandButton.isPressed());
       logger.WriteLine("Encoder: %f.3", encoder.getTotalDistanceLeft());
       logger.WriteLine("Tempo de prova: %d ms", presto.getStartTime() - presto.getStopTime());
-      logger.WriteLine("Enviando dados");
+      logger.WriteLine("Kp: %f.3, Ki: %f.3, Kd: %f.3", pidController.getProportionalConstant(),
+                        pidController.getIntegralConstant(), pidController.getDerivativeConstant());
+      logger.WriteLine("Velocidade Linear: %f.2", presto.getLinearVelocity());
+      logger.WriteLine("Enviando dados...");
 #endif
     }
     return;
@@ -103,3 +108,61 @@ void killSwitch()
 {
   shouldStop = true;
 }
+
+
+#ifdef DEBUG
+
+void commandHandler()
+{
+  // Atenção aqui. Os comandos não podem ser muito grandes,
+  // caso contrário vamos estar acessando outras áreas da memória.
+  // Alocando isso dinâmicamente resolve o problema, mas nunca é recomendado em softwares embarcados.
+  char serialStream[70];
+  unsigned int index = 0;
+  while (Serial.available() > 0)
+  {
+    serialStream[index] = Serial.read();
+    serialStream[++index] = '\0'; // Final do comando
+  }
+
+  // Se nada foi lido, simplesmente retorna
+  if(index == 0)
+    return;
+
+  // Atenção a soma do tamanho desses arrays
+  char command[50];
+	char value[20];
+	sscanf(serialStream, "%s %s", command, value);
+
+  if (strcmp(command, "/kill") == 0)
+  {
+    killSwitch();
+  }
+  else if (strcmp(command, "/setKp") == 0)
+  {
+    float kp = atof(value);
+    float ki = pidController.getIntegralConstant();
+    float kd = pidController.getDerivativeConstant();
+    pidController.setTunings(kp, ki, kd);
+  }
+  else if (strcmp(command, "/setKi") == 0)
+  {
+    float kp = pidController.getProportionalConstant();
+    float ki = atof(value);
+    float kd = pidController.getDerivativeConstant();
+    pidController.setTunings(kp, ki, kd);
+  }
+  else if (strcmp(command, "/setKd") == 0)
+  {
+    float kp = pidController.getProportionalConstant();
+    float ki = pidController.getIntegralConstant();
+    float kd = atof(value);
+    pidController.setTunings(kp, ki, kd);
+  }
+  else if (strcmp(command, "/setVelocity") == 0)
+  {
+    presto.setLinearVelocity(atof(value));
+  }
+}
+
+#endif

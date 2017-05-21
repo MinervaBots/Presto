@@ -14,9 +14,11 @@ public:
 	virtual void setSampleTime(int newSampleTime);
   void setOutputLimits(float min, float max);
   virtual void setTunings(float proportionalConstant, float integralConstant, float derivativeConstant);
-
   virtual float run(float intput);
 
+	float getProportionalConstant() { return m_ProportionalConstant; }
+	float getDerivativeConstant() { return m_DerivativeConstant; }
+	float getIntegralConstant() { return m_IntegralConstant; }
 protected:
 	float m_ProportionalConstant;
 	float m_DerivativeConstant;

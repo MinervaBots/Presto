@@ -25,8 +25,11 @@ public:
   unsigned long getStartTime() { return m_StartTime; }
   unsigned long getStopTime() { return m_StopTime; }
 
+  void setLinearVelocity(float linearVelocity) { m_LinearVelocity = linearVelocity; }
+  float getLinearVelocity() { return m_LinearVelocity; }
 private:
   bool m_IsRunning;
+  float m_LinearVelocity;
   InputSource *m_pInputSource;
   SystemController *m_pSystemController;
   MotorController *m_pMotorController;

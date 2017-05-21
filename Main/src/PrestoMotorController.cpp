@@ -52,6 +52,7 @@ void PrestoMotorController::calculatePwm()
 
 void PrestoMotorController::move(float linearVelocity, float angularVelocity)
 {
+  // Reduzia a velocidade linear em função da angular?
   DifferentialDriveController::move(linearVelocity, angularVelocity);
 
   calculatePwm();
@@ -63,8 +64,8 @@ void PrestoMotorController::move(float linearVelocity, float angularVelocity)
 	}
 	else
 	{
-		analogWrite(m_LeftInPin2, m_LeftPwm);
 		analogWrite(m_LeftInPin1, 0);
+		analogWrite(m_LeftInPin2, m_LeftPwm);
 	}
 
   if(getRightVelocity() > 0)
@@ -74,7 +75,7 @@ void PrestoMotorController::move(float linearVelocity, float angularVelocity)
 	}
 	else
 	{
-		analogWrite(m_RightInPin2, m_RightPwm);
 		analogWrite(m_RightInPin1, 0);
+		analogWrite(m_RightInPin2, m_RightPwm);
 	}
 }
