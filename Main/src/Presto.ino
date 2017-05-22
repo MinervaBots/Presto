@@ -163,6 +163,14 @@ void commandHandler()
   {
     presto.setLinearVelocity(atof(value));
   }
+  else if (strcmp(command, "/setMaxPWM") == 0)
+  {
+    motorController.setMaxPWM(atoi(value));
+  }
+  else if (strcmp(command, "/setSmoothingValue") == 0)
+  {
+    motorController.setActivationSmoothingValue(atoi(value));
+  }
 }
 
 #endif
