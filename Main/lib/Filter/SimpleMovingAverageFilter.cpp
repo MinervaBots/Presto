@@ -34,7 +34,7 @@ float SimpleMovingAverageFilter::getInput()
 {
   /*
   Incrementa a quantidade de leituras (amostras) que temos agora
-  e limita pra que não saia dos limites do array
+  e limita pra que não saia dos limites do array.
   */
   if(++m_SamplesCount > m_SamplesCapacity)
   {
@@ -42,24 +42,22 @@ float SimpleMovingAverageFilter::getInput()
     m_Sum -= m_pSamples[m_Position];
   }
 
-  // Faz a leitura
-  float sample = m_pInputSource->getInput();
 
-  // Substitui algum valor (o mais antigo) no array de leituras, pela leitura atual
-  m_pSamples[m_Position] = sample;
+  // Faz a leitura substituindo o valor mais antigo no array de leituras.
+  m_pSamples[m_Position] = m_pInputSource->getInput();
 
   // Adiciona ao somatório
-  m_Sum += sample;
+  m_Sum += m_pSamples[m_Position];
 
   /*
   Incrementa a próxima posição a ser substituida (agora está é a leitura mais antiga).
   Se isso for além dos limites do array, volta pra primeira (ping-pong clamp).
   */
-  if(++m_Position > m_SamplesCapacity)
+  if(++m_Position >= m_SamplesCapacity)
   {
     m_Position = 0;
   }
-  
+
   // Calcula a média dividindo pelo número de leituras
   return m_Sum / m_SamplesCount;
 }
