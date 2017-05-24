@@ -1,6 +1,7 @@
 #ifndef LineFollower_hpp
 #define LineFollower_hpp
 
+#include "../CompilerDefinitions.h"
 #include "../Filter/Filter.hpp"
 #include "../InputSource/InputSource.hpp"
 #include "../SystemController/SystemController.hpp"

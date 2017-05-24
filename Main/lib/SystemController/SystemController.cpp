@@ -1,5 +1,4 @@
 #include "SystemController.hpp"
-#include "../Logger/Logger.hpp"
 
 void SystemController::setSampleTime(unsigned long newSampleTime)
 {

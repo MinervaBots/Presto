@@ -1,6 +1,5 @@
 #include "PIDController.hpp"
 #include "../MathHelper/MathHelper.h"
-#include "../Logger/Logger.hpp"
 
 PIDController::PIDController(int sampleTime, float setPoint, float minOutput, float maxOutput,
 									float proportionalConstant, float integralConstant, float derivativeConstant,
@@ -36,8 +35,7 @@ void PIDController::setTunings(float proportionalConstant, float integralConstan
 	if (proportionalConstant < 0 || integralConstant < 0 || derivativeConstant < 0)
 	{
 #ifdef DEBUG
-    CurrentLogger->WriteLine("[PIDController::setTunings]: As constantes devem ser valores apenas positivos\n" +
-      "Use o modo de operação inverso");
+    CurrentLogger->WriteLine("[PIDController::setTunings]: As constantes devem ser valores apenas positivos. Use o modo de operação inverso");
 #endif
 	}
 

@@ -1,4 +1,5 @@
 #include "LineFollower.hpp"
+#include "../Logger/Logger.hpp"
 #include <Arduino.h>
 
 LineFollower::LineFollower(InputSource *pInputSource, SystemController *pSystemController, MotorController *pMotorController)
@@ -33,6 +34,12 @@ void LineFollower::stop()
 
 void LineFollower::update()
 {
-  float pidOutput = m_pSystemController->run(m_pInputSource->getInput());
+  float input = m_pInputSource->getInput();
+  float pidOutput = m_pSystemController->run(input);
+
+#ifdef DEBUG
+  CurrentLogger->WriteLine("Input: %f. PID: %f", input, pidOutput);
+#endif
+
   m_pMotorController->move(70, pidOutput);
 }

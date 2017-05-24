@@ -1,6 +1,8 @@
 #ifndef MotorController_hpp
 #define MotorController_hpp
 
+#include "../CompilerDefinitions.h"
+
 class MotorController
 {
 public:

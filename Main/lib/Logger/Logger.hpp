@@ -2,6 +2,7 @@
 #define Logger_hpp
 
 #include <string.h>
+//#include "../CompilerDefinitions.h"
 
 class Logger;
 static Logger *CurrentLogger;

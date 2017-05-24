@@ -1,6 +1,6 @@
+#include "../lib/CompilerDefinitions.h"
 #include "Pins.h"
 #include "PrestoSensoring.hpp"
-#include "CompilerDefinitions.h"
 #include "PrestoMotorController.hpp"
 #include "../lib/LineFollower/LineFollower.hpp"
 #include "../lib/Filter/SimpleMovingAverageFilter.hpp"
