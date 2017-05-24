@@ -63,6 +63,8 @@ void QTRSensors::init(unsigned char *pins, unsigned char numSensors,
     calibratedMinimumOff=0;
     calibratedMaximumOff=0;
 
+    _lastValue=0; // assume initially that the line is left.
+
     if (numSensors > QTR_MAX_SENSORS)
         _numSensors = QTR_MAX_SENSORS;
     else
@@ -79,7 +81,6 @@ void QTRSensors::init(unsigned char *pins, unsigned char numSensors,
     for (i = 0; i < _numSensors; i++)
     {
         _pins[i] = pins[i];
-        pinMode(pins[i], INPUT);
     }
 
     _emitterPin = emitterPin;
@@ -297,7 +298,8 @@ void QTRSensors::readCalibrated(unsigned int *sensor_values, unsigned char readM
 
         signed int x = 0;
         if(denominator != 0)
-            x = (((signed long)sensor_values[i]) - calmin)
+            //x = (((signed long)sensor_values[i]) - calmin)
+            x = (((signed long)constrain(sensor_values[i], calmin, calmax)) - calmin)
                 * 1000 / denominator;
         if(x < 0)
             x = 0;
@@ -335,7 +337,6 @@ int QTRSensors::readLine(unsigned int *sensor_values,
     unsigned long avg; // this is for the weighted total, which is long
                        // before division
     unsigned int sum; // this is for the denominator which is <= 64000
-    static int last_value=0; // assume initially that the line is left.
 
     readCalibrated(sensor_values, readMode);
 
@@ -362,7 +363,7 @@ int QTRSensors::readLine(unsigned int *sensor_values,
     if(!on_line)
     {
         // If it last read to the left of center, return 0.
-        if(last_value < (_numSensors-1)*1000/2)
+        if(_lastValue < (_numSensors-1)*1000/2)
             return 0;
 
         // If it last read to the right of center, return the max.
@@ -371,9 +372,9 @@ int QTRSensors::readLine(unsigned int *sensor_values,
 
     }
 
-    last_value = avg/sum;
+    _lastValue = avg/sum;
 
-    return last_value;
+    return _lastValue;
 }
 
 
@@ -448,8 +449,8 @@ void QTRSensorsRC::readPrivate(unsigned int *sensor_values)
     for(i = 0; i < _numSensors; i++)
     {
         sensor_values[i] = _maxValue;
-        pinMode(_pins[i], OUTPUT);      // make sensor line an output
-        digitalWrite(_pins[i], HIGH);   // drive sensor line high
+        pinMode(_pins[i], OUTPUT);         // make sensor line an output
+        digitalWrite(_pins[i], HIGH);      // drive sensor line high
     }
 
     delayMicroseconds(10);              // charge lines for 10 us
