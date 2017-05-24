@@ -5,7 +5,7 @@
 #include "../lib/LineFollower/LineFollower.hpp"
 #include "../lib/Filter/SimpleMovingAverageFilter.hpp"
 
-volatile bool shouldStop;
+volatile bool killSwitchSignal;
 LineFollower presto;
 PrestoSensoring sensoring;
 Button commandButton(COMMAND_BUTTON_PIN, PULLDOWN);
@@ -76,7 +76,11 @@ void loop()
   logger.flush();
 #endif
 
-  if(sensoring.shouldStop() || shouldStop)
+  /*
+  Passando em 5 marcas do lado direito ou 20 segundos de prova ou o sinal
+  do killswitch paramos o Presto.
+  */
+  if(sensoring.shouldStop(5) || presto.shouldStop(20) || killSwitchSignal)
   {
     if(presto.getIsRunning())
     {
@@ -107,7 +111,7 @@ void loop()
 
 void killSwitch()
 {
-  shouldStop = true;
+  killSwitchSignal = true;
 }
 
 

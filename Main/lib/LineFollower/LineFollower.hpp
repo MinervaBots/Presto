@@ -28,6 +28,9 @@ public:
 
   void setLinearVelocity(float linearVelocity) { m_LinearVelocity = linearVelocity; }
   float getLinearVelocity() { return m_LinearVelocity; }
+
+  bool shouldStop(unsigned long maxTime);
+
 private:
   bool m_IsRunning;
   float m_LinearVelocity;

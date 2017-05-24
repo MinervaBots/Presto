@@ -65,6 +65,7 @@ void PrestoSensoring::calibrate(Button commandButton, unsigned char statusLedPin
     m_QtrRight.calibrate();
     m_QtrLeft.calibrate();
   }
+
   /*
   Calcula a média entre o máximo e o mínimo que foi lido nesse sensores, com isso temos
   uma referência para comparar se foi lido ou não, já que esses são sensores analógicos.
@@ -109,17 +110,28 @@ void PrestoSensoring::update()
   }
   m_LastRun = now;
 
-  // TODO - Verificar se isso está certo
-  if(leftMark && rightMark) // Interseção da linha na pista
+  // Interseção da linha na pista
+  if(leftMark && rightMark)
   {
-    // Não faz nada :P
+    // Não faz nada
   }
-  else if(!leftMark && rightMark) // Marca de inicio de prova
+  // Marca de inicio/fim de prova
+  else if(!leftMark && rightMark)
   {
     m_RightCount++;
   }
-  else if(leftMark && !rightMark) // Marca de inicio/fim de curva
+  // Marca de inicio/fim de curva
+  else if(leftMark && !rightMark)
   {
     m_InCurve = !m_InCurve;
   }
+}
+
+bool PrestoSensoring::shouldStop(unsigned int rightMarks)
+{
+  if(m_RightCount >= rightMarks)
+  {
+    return true;
+  }
+  return false;
 }

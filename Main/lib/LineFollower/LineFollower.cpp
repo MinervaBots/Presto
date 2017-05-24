@@ -43,3 +43,12 @@ void LineFollower::update()
 
   m_pMotorController->move(70, pidOutput);
 }
+
+bool LineFollower::shouldStop(unsigned long maxTime)
+{
+  if(millis() - m_StartTime > maxTime)
+  {
+    return true;
+  }
+  return false;
+}

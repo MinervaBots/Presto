@@ -21,7 +21,7 @@ public:
   void calibrate(Button commandButton, unsigned char statusLedPin);
 
   void update();
-  bool shouldStop() { return m_RightCount >= 2; }
+  bool shouldStop(unsigned int rightMarks);
   bool inCurve() { return m_InCurve; }
 
   float getInput();
