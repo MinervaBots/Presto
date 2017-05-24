@@ -80,7 +80,7 @@ void PIDController::setTunings(float proportionalConstant, float integralConstan
 float PIDController::run(float input)
 {
 	unsigned long deltaTime;
-	if (checkTime(&deltaTime))
+	if (!checkTime(&deltaTime))
 	{
 		return m_LastOutput;
 	}
