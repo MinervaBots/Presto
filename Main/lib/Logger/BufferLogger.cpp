@@ -19,52 +19,39 @@ BufferLogger::~BufferLogger()
 void BufferLogger::flush()
 {
   m_BufferPosition = 0;
-  //memset(m_LogsBuffer, 0, m_BufferSize);
+  memset(m_LogsBuffer, '\0', m_BufferSize);
 }
 
 void BufferLogger::write(const char* format, ...)
 {
   /*
-  char msg[100];
-  va_list args;
-  va_start (args, format);
-  vsnprintf (msg, 256, format, args);
-  //perror (msg);
-  va_end (args);
-
-  unsigned int lenght;
-  for (lenght = 0; lenght < m_BufferSize; lenght++)
-  {
-    if(msg[lenght] == '\0')
-      break;
-  }
-  memcpy(m_LogsBuffer + m_BufferPosition, msg, lenght);
+  O tamanho disponível é o total do buffer menos o que já tá ocupado.
+  Subtrai 1 aqui pra garantir que vai ter espaço pro marcador de fim de string.
   */
+  unsigned int availabeSize = m_BufferSize - m_BufferPosition - 1;
 
-  // Dessa forma eu não tenho certeza se funciona. O jeito de cima é "garantido" (não foi testado).
-  // Mas aqui a gente não precisa se preocupar muito em alocar um novo array sempre que mandar uma mensagem,
-  // e podemos ter mensagens grandes por vez (256 no momento)
-
-  // Formata o texto como em printf
-  // "Um inteiro: %d", 90
   va_list args;
   va_start (args, format);
-  vsnprintf (&m_LogsBuffer[m_BufferPosition], 256, format, args);
+  vsnprintf (&m_LogsBuffer[m_BufferPosition], availabeSize, format, args);
   va_end (args);
 
-  // Procura o character que marca o final de uma string
   unsigned int lenght;
-  for (lenght = 0; lenght < m_BufferSize; lenght++)
+  for (lenght = 0; lenght < availabeSize; lenght++)
   {
-    if(m_LogsBuffer[lenght] == '\0')
+    if(m_LogsBuffer[m_BufferPosition + lenght] == '\0')
       break;
   }
-
-  // Incrementa a posição do buffer pelo tamanho da string que acabamos de adicionar
+  // Incrementa o tamanho da string que foi adicionado
   m_BufferPosition += lenght;
-  // Garante que no final do que acabamos de adicionar temos um 'fim de string'.
-  // Se algo for escrito depois vai sobrescrever esse marcador
-  m_LogsBuffer[++m_BufferPosition] = '\0';
+
+  /*
+  Posiciona o marcador de fim de string logo no final do que foi adicionado agora
+  Se algo for escrito depois vai sobrescrever esse marcador.
+
+  Por causa de flush(), teoricamente tudo depois disso é '\0' então não precisa
+  se preocupar com marcador de fim de string.
+  */
+  //m_LogsBuffer[m_BufferPosition] = '\0';
 }
 
 void BufferLogger::writeLine(const char* format, ...)
@@ -74,6 +61,9 @@ void BufferLogger::writeLine(const char* format, ...)
   write(format);
   // Sobrescreve o marcador de final de string por um de final de linha
   m_LogsBuffer[m_BufferPosition] = '\n';
-  // Recoloca o final da string
-  m_LogsBuffer[++m_BufferPosition] = '\0';
+
+  /*
+  Por causa de flush(), teoricamente tudo depois disso é '\0' então não precisa
+  se preocupar com marcador de fim de string.
+  */
 }
