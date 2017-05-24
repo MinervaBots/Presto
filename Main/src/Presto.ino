@@ -71,8 +71,9 @@ void loop()
 {
 #ifdef DEBUG
   commandHandler();
-  Serial.println(logger.getBuffer());
-  logger.Flush();
+  Serial.write(logger.getBuffer());
+  Serial.flush();
+  logger.flush();
 #endif
 
   if(sensoring.shouldStop() || shouldStop)
@@ -81,19 +82,19 @@ void loop()
     {
       presto.stop();
 #ifdef DEBUG
-      logger.WriteLine("Fim do percurso");
+      logger.writeLine("Fim do percurso");
 #endif
     }
     else
     {
 #ifdef DEBUG
       while(!commandButton.isPressed());
-      logger.WriteLine("Encoder: %f.3", encoder.getTotalDistanceLeft());
-      logger.WriteLine("Tempo de prova: %d ms", presto.getStartTime() - presto.getStopTime());
-      logger.WriteLine("Kp: %f.3, Ki: %f.3, Kd: %f.3", pidController.getProportionalConstant(),
+      logger.writeLine("Encoder: %f.3", encoder.getTotalDistanceLeft());
+      logger.writeLine("Tempo de prova: %d ms", presto.getStartTime() - presto.getStopTime());
+      logger.writeLine("Kp: %f.3, Ki: %f.3, Kd: %f.3", pidController.getProportionalConstant(),
                         pidController.getIntegralConstant(), pidController.getDerivativeConstant());
-      logger.WriteLine("Velocidade Linear: %f.2", presto.getLinearVelocity());
-      logger.WriteLine("Enviando dados...");
+      logger.writeLine("Velocidade Linear: %f.2", presto.getLinearVelocity());
+      logger.writeLine("Enviando dados...");
 #endif
     }
     return;
@@ -114,9 +115,11 @@ void killSwitch()
 
 void commandHandler()
 {
-  // Atenção aqui. Os comandos não podem ser muito grandes,
-  // caso contrário vamos estar acessando outras áreas da memória.
-  // Alocando isso dinâmicamente resolve o problema, mas nunca é recomendado em softwares embarcados.
+  /*
+  Atenção aqui. Os comandos não podem ser muito grandes,
+  caso contrário vamos estar acessando outras áreas da memória.
+  Alocando isso dinâmicamente resolve o problema, mas nunca é recomendado em softwares embarcados.
+  */
   char serialStream[70];
   unsigned int index = 0;
   while (Serial.available() > 0)

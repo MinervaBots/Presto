@@ -38,7 +38,7 @@ void LineFollower::update()
   float pidOutput = m_pSystemController->run(input);
 
 #ifdef DEBUG
-  CurrentLogger->WriteLine("Input: %f. PID: %f", input, pidOutput);
+  CurrentLogger->writeLine("Input: %f. PID: %f", input, pidOutput);
 #endif
 
   m_pMotorController->move(70, pidOutput);

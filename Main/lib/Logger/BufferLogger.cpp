@@ -16,13 +16,13 @@ BufferLogger::~BufferLogger()
   //free(m_LogsBuffer);
 }
 
-void BufferLogger::Flush()
+void BufferLogger::flush()
 {
   m_BufferPosition = 0;
   //memset(m_LogsBuffer, 0, m_BufferSize);
 }
 
-void BufferLogger::Write(const char* format, ...)
+void BufferLogger::write(const char* format, ...)
 {
   /*
   char msg[100];
@@ -67,11 +67,11 @@ void BufferLogger::Write(const char* format, ...)
   m_LogsBuffer[++m_BufferPosition] = '\0';
 }
 
-void BufferLogger::WriteLine(const char* format, ...)
+void BufferLogger::writeLine(const char* format, ...)
 {
   // TODO - Verificar se a formatação vai funcionar
   // Se não preciso fazer aqui o mesmo que fiz em 'Write'
-  Write(format);
+  write(format);
   // Sobrescreve o marcador de final de string por um de final de linha
   m_LogsBuffer[m_BufferPosition] = '\n';
   // Recoloca o final da string

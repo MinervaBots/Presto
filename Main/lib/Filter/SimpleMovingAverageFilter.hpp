@@ -3,13 +3,15 @@
 
 #include "Filter.hpp"
 
-// Filtro de média móvel (Progressiva ou de Histórico) faz a média das ultimas
-// 'm_SamplesCapacity' leituras para amenizar ruido.
-// Extremamente rápido mas ocupa uma quantidade maior de memória.
-// Mas pode causar lag se a variação do sistema for muito bruca, ou se o tamanho do histórico for muito grande
-// Pode também propagar rúido das ultimas avaliações.
-//
-// Um novo filtro de média ponderada pode amenizar isso.
+/*
+Filtro de média móvel (Progressiva ou de Histórico) faz a média das ultimas
+'m_SamplesCapacity' leituras para amenizar ruido.
+Extremamente rápido mas ocupa uma quantidade maior de memória.
+Mas pode causar lag se a variação do sistema for muito bruca, ou se o tamanho do histórico for muito grande
+Pode também propagar rúido das ultimas avaliações.
+
+Um novo filtro de média ponderada pode amenizar isso.
+*/
 class SimpleMovingAverageFilter : public Filter
 {
 public:

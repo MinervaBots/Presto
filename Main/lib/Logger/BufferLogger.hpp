@@ -8,9 +8,9 @@ class BufferLogger : public Logger
 public:
   BufferLogger(unsigned int bufferSize);
   ~BufferLogger();
-  void Write(const char* format, ...);
-  void WriteLine(const char* format, ...);
-  virtual void Flush();
+  void write(const char* format, ...);
+  void writeLine(const char* format, ...);
+  virtual void flush();
   const char *getBuffer() { return m_LogsBuffer; }
 private:
   char *m_LogsBuffer;
