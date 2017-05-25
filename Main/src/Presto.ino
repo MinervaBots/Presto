@@ -80,7 +80,7 @@ void loop()
   Passando em 5 marcas do lado direito ou 20 segundos de prova ou o sinal
   do killswitch paramos o Presto.
   */
-  if(sensoring.shouldStop(5) || presto.shouldStop(20) || killSwitchSignal)
+  if(sensoring.shouldStop(5) || presto.shouldStop(20000) || killSwitchSignal)
   {
     if(presto.getIsRunning())
     {
