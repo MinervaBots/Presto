@@ -101,6 +101,13 @@ void loop()
       logger.writeLine("Velocidade Linear: %f.2", presto.getLinearVelocity());
       logger.writeLine("Enviando dados...");
 #endif
+
+      // Aguarda apertar de novo pra recomeçar a execução
+      while(!commandButton.isPressed());
+      digitalWrite(13,1);
+      delay(1000);
+      killSwitchSignal = false;
+      presto.start();
     }
     return;
   }
