@@ -16,7 +16,6 @@ public:
   void setSensorLeft(QTRSensorsRC qtrLeft) { m_QtrLeft = qtrLeft; }
   void setSensorRight(QTRSensorsRC qtrRight) { m_QtrRight = qtrRight; }
   void setSampleTimes(unsigned long leftSampleTime, unsigned long rightSampleTime);
-  unsigned int *getSensorWeights() { return m_SensorWeights; }
 
   void calibrate(Button commandButton, unsigned char statusLedPin);
 

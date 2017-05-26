@@ -20,6 +20,8 @@ void PrestoSensoring::setSensorArray(QTRSensorsRC qtrArray)
 {
   m_QtrArray = qtrArray;
   m_SensorWeights = new unsigned int[m_QtrArray.getNumSensors()];
+  // Inicializa tudo em zero
+  memset(m_SensorWeights, 0, m_QtrArray.getNumSensors() * sizeof(int));
 
   /*
   Calcula qual o valor central que o array retorna
@@ -36,7 +38,12 @@ float PrestoSensoring::getInput()
   Estando deslocado para a direita o resultado é < 0
   e para a esquerda > 0
   */
+
+  // Linha branca
   return (m_QtrArray.readLine(m_SensorWeights, QTR_EMITTERS_ON, true) - m_CenterPosition) / m_CenterPosition;
+
+  // Linha preta
+  //return (m_QtrArray.readLine(m_SensorWeights, QTR_EMITTERS_ON) - m_CenterPosition) / m_CenterPosition;
 }
 
 void PrestoSensoring::setSampleTimes(unsigned long leftSampleTime, unsigned long rightSampleTime)

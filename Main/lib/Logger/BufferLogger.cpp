@@ -8,6 +8,9 @@ BufferLogger::BufferLogger(unsigned int bufferSize)
   m_BufferPosition = 0;
   m_BufferSize = bufferSize;
   m_LogsBuffer = new char[bufferSize];//(char*)malloc(bufferSize);
+
+  // Chama aqui pra garantir que o buffer está "limpo"
+  flush();
 }
 
 BufferLogger::~BufferLogger()

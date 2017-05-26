@@ -1,4 +1,5 @@
 #include "../lib/CompilerDefinitions.h"
+#include "../lib/Macros.h"
 #include "Pins.h"
 #include "PrestoSensoring.hpp"
 #include "PrestoMotorController.hpp"
@@ -54,7 +55,7 @@ void setup()
   motorController.setWheelsDistance(0.143); // TODO - Medir isso novamente. Por causa do encoder, as rodas podem ficar mais proximas
   presto.setMotorController(&motorController);
 
-  sensoring.setSensorArray(QTRSensorsRC(SensorArrayPins, sizeof(SensorArrayPins) / sizeof(char), 200));
+  sensoring.setSensorArray(QTRSensorsRC(SensorArrayPins, arraySize(SensorArrayPins), 200));
   sensoring.setSensorLeft(QTRSensorsRC(SensorLeftBorderPins, 1, 3000));
   sensoring.setSensorRight(QTRSensorsRC(SensorRightBorderPins, 1, 3000));
   sensoring.setSampleTimes(120, 150);

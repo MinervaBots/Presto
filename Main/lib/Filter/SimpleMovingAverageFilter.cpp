@@ -1,6 +1,6 @@
 #include "SimpleMovingAverageFilter.hpp"
 #include <stdlib.h>
-//#include <stdio.h>
+#include <string.h>
 
 SimpleMovingAverageFilter::SimpleMovingAverageFilter(unsigned int samplesCapacity) :
   m_SamplesCount(0),
@@ -9,6 +9,7 @@ SimpleMovingAverageFilter::SimpleMovingAverageFilter(unsigned int samplesCapacit
   m_Sum(0)
 {
   m_pSamples = new float[m_SamplesCapacity];
+  memset(m_pSamples, 0, m_SamplesCapacity * sizeof(float));
   //m_pSamples = (float*)calloc (m_SamplesCapacity, sizeof(float));
 }
 
