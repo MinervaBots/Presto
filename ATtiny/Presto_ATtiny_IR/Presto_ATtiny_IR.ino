@@ -13,16 +13,14 @@ void setup()
   pinMode(IR_INPUT_PIN, INPUT);
   pinMode(IR_OUTPUT_PIN, OUTPUT);
   irrecv.enableIRIn();
+  Serial.begin(9600);
 }
 
 void loop()
 {
   if (irrecv.decode(&results))
   {
-    if(results.value == SIGNAL)
-    {
-      digitalWrite(IR_OUTPUT_PIN, HIGH);
-    }
+    Serial.println(results.value, HEX);
     irrecv.resume(); // Receive the next value
   }
 }
