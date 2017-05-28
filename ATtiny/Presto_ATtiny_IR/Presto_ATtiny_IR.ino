@@ -14,7 +14,7 @@ void setup()
   pinMode(IR_INPUT_PIN, INPUT);
   pinMode(IR_OUTPUT_PIN, OUTPUT);
   irrecv.enableIRIn();
-  Serial.begin(9600);
+
 }
 
 void loop()
