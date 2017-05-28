@@ -1,9 +1,8 @@
-#include <string.h>
 #include "IRremote.h"
 
 #define IR_INPUT_PIN 0
 #define IR_OUTPUT_PIN 1
-#define KILL_SIGNAL "511DBB" // Botão channel no controle da robocore
+#define KILL_SIGNAL 0x511DBB // Botão channel no controle da robocore
 
 
 IRrecv irrecv(IR_INPUT_PIN);
@@ -21,7 +20,7 @@ void loop()
 {
   if (irrecv.decode(&results))
   {
-    if(strcmp(results.value, KILL_SIGNAL) == 0)
+    if(results.value == KILL_SIGNAL)
     {
       digitalWrite(IR_OUTPUT_PIN, HIGH);
     }
