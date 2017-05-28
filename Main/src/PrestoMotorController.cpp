@@ -66,9 +66,25 @@ void PrestoMotorController::move(float linearVelocity, float angularVelocity)
   // Reduzia a velocidade linear em função da angular?
   DifferentialDriveController::move(linearVelocity, angularVelocity);
 
-  float leftVelocity = getLeftVelocity();
-  float rightVelocity = getRightVelocity();
 
+  /*
+  Impede que as velocidades sejam negativas, evitando reversão dos motores.
+  Caso seja negativa, ela assuma o valor 0, fazendo com que essa roda seja o
+  eixo de rotação do Presto.
+  */
+  if(m_LeftVelocity < 0)
+    m_LeftVelocity = 0;
+  if(m_RightVelocity < 0)
+    m_RightVelocity = 0;
+
+
+  /*
+  Define esses pinos como 0 forçando o movimento a ser sempre CC,
+  resultando apenas em movimento para frente.
+  */
+  analogWrite(m_LeftInPin2, 0);
+  analogWrite(m_RightInPin2, 0);
+      
   /*
   Usa a uma função de ativação pra converter as velocidades em PWM.
 
@@ -95,35 +111,12 @@ void PrestoMotorController::move(float linearVelocity, float angularVelocity)
   já que essas funções só retornam 1 quando o parâmetro é infinito, mas devido a
   aproximações podemos chegar bem perto (perto o suficiente pra ser arredondo pra 255).
   E as vezes nem é a nossa intenção ir tão rápido então é só mudar essa constante.
-
-
-  ATENÇÃO: Só adimitimos valores de PWM positivos então o nosso parâmetro da função
-  tem que ser o valor absuluto da velocidade.
   */
-  int leftPwm = m_MaxPWM * hyperbolicTangent(abs(leftVelocity), m_SmoothingValue);
-  int rightPwm = m_MaxPWM * hyperbolicTangent(abs(rightVelocity), m_SmoothingValue);
+  int leftPwm = m_MaxPWM * hyperbolicTangent(m_LeftVelocity, m_SmoothingValue);
+  int rightPwm = m_MaxPWM * hyperbolicTangent(m_RightVelocity, m_SmoothingValue);
 
-	if(leftVelocity > 0)
-	{
-		analogWrite(m_LeftInPin1, leftPwm);
-		analogWrite(m_LeftInPin2, 0);
-	}
-	else
-	{
-		analogWrite(m_LeftInPin1, 0);
-		analogWrite(m_LeftInPin2, leftPwm);
-	}
-
-  if(rightVelocity > 0)
-	{
-		analogWrite(m_RightInPin1, rightPwm);
-		analogWrite(m_RightInPin2, 0);
-	}
-	else
-	{
-		analogWrite(m_RightInPin1, 0);
-		analogWrite(m_RightInPin2, rightPwm);
-	}
+	analogWrite(m_LeftInPin1, leftPwm);
+	analogWrite(m_RightInPin1, rightPwm);
 }
 
 float PrestoMotorController::softSign(float x, unsigned int b)

@@ -32,11 +32,13 @@ public:
   void setEncoder(WheelEncoder *pWheelEncoder);
   void setPositionPointer(Position *pPosition) { m_pPosition = pPosition; }
 
+protected:
+  float m_LeftVelocity;
+  float m_RightVelocity;
+
 private:
   float m_WheelsRadius;
   float m_WheelsDistance;
-  float m_LeftVelocity;
-  float m_RightVelocity;
 
   Position *m_pPosition;
   WheelEncoder *m_pWheelEncoder;
