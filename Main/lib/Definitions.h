@@ -3,3 +3,7 @@ template <typename T, unsigned S> inline unsigned arraySize(const T (&v)[S]) { r
 
 
 // Macros
+
+
+// Defines
+#define NOT_USED 255

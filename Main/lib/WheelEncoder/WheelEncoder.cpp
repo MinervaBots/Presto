@@ -1,4 +1,5 @@
 #include "WheelEncoder.hpp"
+#include "../Definitions.h"
 #include <Arduino.h>
 
 namespace WheelEncoderPrivate
@@ -27,8 +28,14 @@ WheelEncoder::WheelEncoder(char leftTickPin, char rightTickPin, float wheelRadiu
   Define as interrupções em CHANGE pois o tick é contado como uma mudança
   ALTO -> Baixo ou BAIXO -> ALTO
   */
-  attachInterrupt(digitalPinToInterrupt(leftTickPin), leftTick, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(rightTickPin), rightTick, CHANGE);
+  if(leftTickPin != NOT_USED)
+  {
+    attachInterrupt(digitalPinToInterrupt(leftTickPin), leftTick, CHANGE);
+  }
+  if(rightTickPin != NOT_USED)
+  {
+    attachInterrupt(digitalPinToInterrupt(rightTickPin), rightTick, CHANGE);
+  }
 }
 
 void WheelEncoder::leftTick()

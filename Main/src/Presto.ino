@@ -1,5 +1,5 @@
 #include "../lib/CompilerDefinitions.h"
-#include "../lib/Macros.h"
+#include "../lib/Definitions.h"
 #include "Pins.h"
 #include "PrestoSensoring.hpp"
 #include "PrestoMotorController.hpp"
@@ -20,7 +20,7 @@ SimpleMovingAverageFilter simpleMovingAverageFilter(5);
   PIDController pidController;
 #endif
 
-WheelEncoder encoder(0, 0); // TODO: Ver qual o pino do encoder
+WheelEncoder encoder(2, NOT_USED); // TODO: Ver qual o pino do encoder
 PrestoMotorController motorController(L_MOTOR_1_PIN, L_MOTOR_2_PIN, R_MOTOR_1_PIN, R_MOTOR_2_PIN);
 
 #ifdef DEBUG
@@ -32,10 +32,22 @@ PrestoMotorController motorController(L_MOTOR_1_PIN, L_MOTOR_2_PIN, R_MOTOR_1_PI
 
 void setup()
 {
+  /*
+  Configura a interruoção para o killSwitch.
+
+  [TODO]
+  Ainda não sabemos exatamente o que isso faz. Focamos no fato de que funciona,
+  mas futuramente isso deve ser estudado.
+  Muito do potencial do Arduino se perde nas limitações da bibliteca.
+  */
+  PCICR |= _BV(PCIE0);
+  PCMSK0 |= _BV(PCINT0);
+
+  sei();
+
 #ifdef DEBUG
   Serial.begin(9600);
 #endif
-  attachInterrupt(digitalPinToInterrupt(KILLSWITCH_PIN), killSwitch, HIGH);
 
   pidController.setSetPoint(0);
   pidController.setSampleTime(10);
@@ -117,9 +129,10 @@ void loop()
   presto.update();
 }
 
-void killSwitch()
+ISR(PCINT0_vect)
 {
-  killSwitchSignal = true;
+  if (PINB & _BV(PB0))
+    killSwitchSignal = false;
 }
 
 
@@ -151,7 +164,7 @@ void commandHandler()
 
   if (strcmp(command, "/kill") == 0)
   {
-    killSwitch();
+    killSwitchSignal = false;
   }
   else if (strcmp(command, "/setKp") == 0)
   {

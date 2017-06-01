@@ -17,7 +17,6 @@ unsigned char SensorRightBorderPins[] = {7};
 #define L_MOTOR_2_PIN 3
 #define R_MOTOR_1_PIN 9
 #define R_MOTOR_2_PIN 10
-#define KILLSWITCH_PIN 8
 #define BUZZER_PIN 12
 
 
