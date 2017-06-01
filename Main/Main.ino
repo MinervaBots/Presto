@@ -1,11 +1,12 @@
-//#define DEBUG
+#define DEBUG
 
 #include "Constantes.h"
 #include "QTRSensors.h"
 
-ISR(PCINT0_vect) {
+ISR(PCINT0_vect)
+{
   if (PINB & _BV(PB0)) 
-    Serial.println("INTERRUPT");
+    following = false;
 }
 
 void setup() 
@@ -77,8 +78,9 @@ void setup()
 }
 
 void loop() 
-{//Seguir
- while(following)
+{
+  // Seguir
+  while(following)
   {
       angular_speed = pid_control(read_sensors());
       //Serial.print("pid_output ");
