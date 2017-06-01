@@ -3,9 +3,18 @@
 #include "Constantes.h"
 #include "QTRSensors.h"
 
+ISR(PCINT0_vect) {
+  if (PINB & _BV(PB0)) 
+    Serial.println("INTERRUPT");
+}
+
 void setup() 
 {
 
+  PCICR |= _BV(PCIE0);
+  PCMSK0 |= _BV(PCINT0);
+
+  sei();
 
   #ifdef DEBUG
     Serial.begin(9600);
