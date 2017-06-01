@@ -1,7 +1,7 @@
 #include "IRremote.h"
 
-#define IR_INPUT_PIN 0
-#define IR_OUTPUT_PIN 1
+#define IR_INPUT_PIN 4
+#define IR_OUTPUT_PIN 0
 #define KILL_SIGNAL 0x511DBB // Botão channel no controle da robocore
 
 
