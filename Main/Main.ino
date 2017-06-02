@@ -3,6 +3,8 @@
 #include "Constantes.h"
 #include "QTRSensors.h"
 
+unsigned volatile long encoder_count = 0;
+
 ISR(PCINT0_vect)
 {
   if (PINB & _BV(PB0)) 
@@ -75,6 +77,8 @@ void setup()
   pinMode(BORDA_DIREITA,INPUT);
   pinMode(BORDA_ESQUERDA,INPUT);
   //irrecv.enableIRIn(); // Habilita o sensor do Killswitch
+
+  attachInterrupt(digitalPinToInterrupt(ENCODER_PIN), encoderCounter, CHANGE);
 }
 
 void loop() 
@@ -127,4 +131,8 @@ void loop()
   digitalWrite(13,1);
   delay(1000);
   following = 1;
+}
+
+void encoderCounter(void) {
+  encoder_count++;
 }

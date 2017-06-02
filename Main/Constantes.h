@@ -28,6 +28,7 @@ float KD = 0.8;// 0.8 // 0.4 - 0.8 - 0.9
 #define DT  0.005
 
 //Pinos do Microcontrolador
+#define ENCODER_PIN 2
 #define BUTTON_PIN  5
 #define L_MOTOR_1 11
 #define L_MOTOR_2 3
