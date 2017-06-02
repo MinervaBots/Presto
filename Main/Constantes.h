@@ -188,28 +188,29 @@ void move_backward()
 
 void move_robot_old_style(float pid_output)
 {
-  if(pid_output > 0){
-    analogWrite(L_MOTOR_1,SPEED);
-    analogWrite(L_MOTOR_2,0);
-    if(SPEED - pid_output < 0){
-      analogWrite(R_MOTOR_1,0);
-      analogWrite(R_MOTOR_2,abs(floor(SPEED - pid_output)));
-    }else{
-      analogWrite(R_MOTOR_1,floor(SPEED - pid_output));
-      analogWrite(R_MOTOR_2,0);
-    }
-  }else{
-    analogWrite(R_MOTOR_1,SPEED);
-    analogWrite(R_MOTOR_2,0);
-    if(SPEED + pid_output < 0){
-      analogWrite(L_MOTOR_1,0);
-      analogWrite(L_MOTOR_2,floor(SPEED + pid_output));
-    }else{
-      analogWrite(L_MOTOR_1,floor(SPEED + pid_output));
-      analogWrite(L_MOTOR_2,0);
-    }
+  analogWrite(L_MOTOR_2, 0);
+  analogWrite(R_MOTOR_2, 0);
+  
+  if(pid_output > 0)
+  {
+    int rightVelocity = SPEED - pid_output;
+    if(rightVelocity < 0)
+      rightVelocity = 0;
+      
+    analogWrite(L_MOTOR_1, SPEED);
+    analogWrite(R_MOTOR_1, rightVelocity);
+  }
+  else
+  {    
+    int leftVelocity = SPEED + pid_output;
+    if(leftVelocity < 0)
+      leftVelocity = 0;
+      
+    analogWrite(L_MOTOR_1, leftVelocity);
+    analogWrite(R_MOTOR_1, SPEED);
   }
 }
+
 //Funcoes de Controle
 float pid_control(float error)
 {
