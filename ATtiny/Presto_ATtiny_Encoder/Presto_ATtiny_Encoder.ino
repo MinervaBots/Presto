@@ -1,4 +1,6 @@
-#define SENSOR_DATA_IN_PIN A4
+#include <Arduino.h>
+
+#define SENSOR_DATA_IN_PIN 1
 #define ENCODER_TICK_OUT_PIN 2
 #define TICK_VALUE 200
 
