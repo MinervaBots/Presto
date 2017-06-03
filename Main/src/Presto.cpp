@@ -1,3 +1,5 @@
+//#define DEBUG
+#include "Arduino.h"
 #include "../lib/CompilerDefinitions.h"
 #include "../lib/Definitions.h"
 #include "Pins.h"
@@ -6,11 +8,11 @@
 #include "../lib/LineFollower/LineFollower.hpp"
 #include "../lib/Filter/SimpleMovingAverageFilter.hpp"
 
-volatile bool killSwitchSignal;
+volatile bool killSwitchSignal = false;
 LineFollower presto;
 PrestoSensoring sensoring;
 Button commandButton(COMMAND_BUTTON_PIN, PULLDOWN);
-SimpleMovingAverageFilter simpleMovingAverageFilter(5);
+SimpleMovingAverageFilter simpleMovingAverageFilter(2);
 
 #ifdef USE_NON_LINEAR_PID
   #include "../lib/PIDController/NonLinearPIDController.hpp"
@@ -23,15 +25,17 @@ SimpleMovingAverageFilter simpleMovingAverageFilter(5);
 WheelEncoder encoder(2, NOT_USED); // TODO: Ver qual o pino do encoder
 PrestoMotorController motorController(L_MOTOR_1_PIN, L_MOTOR_2_PIN, R_MOTOR_1_PIN, R_MOTOR_2_PIN);
 
-#ifdef DEBUG
+#ifdef DEBUG2
   #include "../lib/Logger/BufferLogger.hpp"
   BufferLogger logger(256);
   void commandHandlers();
 #endif
 
-
 void setup()
 {
+//#ifdef DEBUG
+  Serial.begin(9600);
+//#endif
   /*
   Configura a interruoção para o killSwitch.
 
@@ -45,15 +49,13 @@ void setup()
 
   sei();
 
-#ifdef DEBUG
-  Serial.begin(9600);
-#endif
+  presto.setStatusPin(STATUS_LED_PIN);
 
   pidController.setSetPoint(0);
   pidController.setSampleTime(10);
-  pidController.setOutputLimits(-100, 100);
+  pidController.setOutputLimits(-255, 255);
   pidController.setControllerDirection(SystemControllerDirection::Direct);
-  pidController.setTunings(12, 40, 0.8);
+  pidController.setTunings(1000, 60, 0);
 
 #ifdef USE_NON_LINEAR_PID
   pidController.setMaxError(10.0);
@@ -65,13 +67,18 @@ void setup()
   motorController.setEncoder(&encoder);
   motorController.setWheelsRadius(0.185);
   motorController.setWheelsDistance(0.143); // TODO - Medir isso novamente. Por causa do encoder, as rodas podem ficar mais proximas
+
+  motorController.setMaxPWM(140);
+  motorController.setActivationSmoothingValue(230);
+
   presto.setMotorController(&motorController);
 
-  sensoring.setSensorArray(QTRSensorsRC(SensorArrayPins, arraySize(SensorArrayPins), 200));
-  sensoring.setSensorLeft(QTRSensorsRC(SensorLeftBorderPins, 1, 3000));
-  sensoring.setSensorRight(QTRSensorsRC(SensorRightBorderPins, 1, 3000));
-  sensoring.setSampleTimes(120, 150);
+  sensoring.setLineColor(LineColor::White);
+  sensoring.setSensorArray(SensorArrayPins, arraySize(SensorArrayPins), 500);
+  sensoring.setLeftSensor(LeftBorderSensorPin, 120, 3000);
+  sensoring.setRightSensor(RightBorderSensorPin, 150, 3000);
 
+  //presto.setInputSource(&sensoring);
   simpleMovingAverageFilter.setInputSource(&sensoring);
   presto.setInputSource(&simpleMovingAverageFilter);
 
@@ -85,7 +92,6 @@ void loop()
 #ifdef DEBUG
   commandHandler();
   Serial.write(logger.getBuffer());
-  Serial.flush();
   logger.flush();
 #endif
 
@@ -93,11 +99,12 @@ void loop()
   Passando em 5 marcas do lado direito ou 20 segundos de prova ou o sinal
   do killswitch paramos o Presto.
   */
-  if(sensoring.shouldStop(5) || presto.shouldStop(20000) || killSwitchSignal)
+  if(/*sensoring.shouldStop(5) /*|| presto.shouldStop(20000) ||*/ killSwitchSignal)
   {
     if(presto.getIsRunning())
     {
       presto.stop();
+      Serial.println("Parou");
 #ifdef DEBUG
       logger.writeLine("Fim do percurso");
 #endif
@@ -113,11 +120,11 @@ void loop()
       logger.writeLine("Velocidade Linear: %f.2", presto.getLinearVelocity());
       logger.writeLine("Enviando dados...");
 #endif
-
       // Aguarda apertar de novo pra recomeçar a execução
       while(!commandButton.isPressed());
-      digitalWrite(13,1);
-      delay(1000);
+
+      //delay(250); // Sem esse delay, muito provavelmente ele vai pular direto pro while de calibração
+      sensoring.calibrate(commandButton, STATUS_LED_PIN);
       killSwitchSignal = false;
       presto.start();
     }
@@ -125,18 +132,23 @@ void loop()
   }
 
   sensoring.update();
-  motorController.inCurve = sensoring.inCurve();
+  //motorController.inCurve = sensoring.inCurve();
   presto.update();
+  //Serial.print("Encoder: ");
+  //Serial.println(encoder.getTotalDistanceLeft());
 }
 
 ISR(PCINT0_vect)
 {
   if (PINB & _BV(PB0))
-    killSwitchSignal = false;
+  {
+    Serial.println("Killswitch");
+    killSwitchSignal = true;
+  }
 }
 
 
-#ifdef DEBUG
+//#ifdef DEBUG
 
 void commandHandler()
 {
@@ -201,4 +213,4 @@ void commandHandler()
   }
 }
 
-#endif
+//#endif

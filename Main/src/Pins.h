@@ -4,9 +4,9 @@
 #include <Arduino.h>
 
 // Sensores de reflectancia
-unsigned char SensorArrayPins[] = {A4, A3, A2, A1};
-unsigned char SensorLeftBorderPins[] = {6};
-unsigned char SensorRightBorderPins[] = {7};
+unsigned char SensorArrayPins[] = { A4, A3, A2, A1 };
+unsigned char LeftBorderSensorPin = 6;
+unsigned char RightBorderSensorPin = 7;
 
 #define COMMAND_BUTTON_PIN  5
 #define STATUS_LED_PIN 13

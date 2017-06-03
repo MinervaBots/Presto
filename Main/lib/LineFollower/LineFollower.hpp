@@ -1,6 +1,7 @@
 #ifndef LineFollower_hpp
 #define LineFollower_hpp
 
+#include "../Definitions.h"
 #include "../CompilerDefinitions.h"
 #include "../Filter/Filter.hpp"
 #include "../InputSource/InputSource.hpp"
@@ -10,8 +11,9 @@
 class LineFollower
 {
 public:
-  LineFollower() : LineFollower(nullptr, nullptr, nullptr) {}
-  LineFollower(InputSource *pInputSource, SystemController *pSystemController, MotorController *pMotorController);
+  LineFollower() : LineFollower(nullptr, nullptr, nullptr, NOT_USED) {}
+  LineFollower(InputSource *pInputSource, SystemController *pSystemController,
+    MotorController *pMotorController, unsigned char statusPin);
   ~LineFollower();
 
   void setInputSource(InputSource *pInputSource) { m_pInputSource = pInputSource; }
@@ -28,10 +30,12 @@ public:
 
   void setLinearVelocity(float linearVelocity) { m_LinearVelocity = linearVelocity; }
   float getLinearVelocity() { return m_LinearVelocity; }
+  void setStatusPin(unsigned char statusPin);
 
   bool shouldStop(unsigned long maxTime);
 
 private:
+  unsigned char m_StatusPin;
   bool m_IsRunning;
   float m_LinearVelocity;
   InputSource *m_pInputSource;
