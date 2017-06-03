@@ -21,8 +21,6 @@ public:
   void clear();
 
 private:
-  InputSource* m_pInputSource;
-
   unsigned int m_SamplesCount;
   unsigned int m_SamplesCapacity;
   unsigned int m_Position;
