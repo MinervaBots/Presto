@@ -64,8 +64,9 @@ void PrestoMotorController::setActivationSmoothingValue(unsigned int smoothingVa
 void PrestoMotorController::move(float linearVelocity, float angularVelocity)
 {
   // Reduzia a velocidade linear em função da angular?
-  DifferentialDriveController::move(linearVelocity, angularVelocity);
-
+  //DifferentialDriveController::move(linearVelocity, angularVelocity);
+  m_LeftVelocity = linearVelocity + angularVelocity;
+  m_RightVelocity = linearVelocity - angularVelocity;
 
   /*
   Impede que as velocidades sejam negativas, evitando reversão dos motores.
@@ -77,14 +78,13 @@ void PrestoMotorController::move(float linearVelocity, float angularVelocity)
   if(m_RightVelocity < 0)
     m_RightVelocity = 0;
 
-
   /*
   Define esses pinos como 0 forçando o movimento a ser sempre CC,
   resultando apenas em movimento para frente.
   */
   analogWrite(m_LeftInPin2, 0);
   analogWrite(m_RightInPin2, 0);
-      
+
   /*
   Usa a uma função de ativação pra converter as velocidades em PWM.
 
@@ -115,10 +115,23 @@ void PrestoMotorController::move(float linearVelocity, float angularVelocity)
   int leftPwm = m_MaxPWM * hyperbolicTangent(m_LeftVelocity, m_SmoothingValue);
   int rightPwm = m_MaxPWM * hyperbolicTangent(m_RightVelocity, m_SmoothingValue);
 
-	analogWrite(m_LeftInPin1, leftPwm);
+  analogWrite(m_LeftInPin1, leftPwm);
 	analogWrite(m_RightInPin1, rightPwm);
+
+/*
+  Serial.print("L VEL: ");
+  Serial.println(m_LeftVelocity);
+  Serial.print("R VEL: ");
+  Serial.println(m_RightVelocity);
+
+  Serial.print("L PWM: ");
+  Serial.println(leftPwm);
+  Serial.print("R PWM: ");
+  Serial.println(rightPwm);
+*/
 }
 
+//[TODO] - Provavelmente tá errado
 float PrestoMotorController::softSign(float x, unsigned int b)
 {
   return x / ((10 / ((float)b)) + x);
@@ -126,5 +139,5 @@ float PrestoMotorController::softSign(float x, unsigned int b)
 
 float PrestoMotorController::hyperbolicTangent(float x, unsigned int b)
 {
-  return (2 / 1 + exp((-2 * ((float)b)/10 * x))) - 1;
+  return (2 / (1 + exp((-2 * (1/(float)b) * x)))) - 1;
 }
