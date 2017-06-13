@@ -68,11 +68,11 @@ float PrestoSensoring::getInput()
     {
       value = 1000 - value;
     }
-/*
+    /*
     Serial.print(m_SensorArrayPins[i]);
     Serial.print(": ");
     Serial.println(value);
-*/
+    */
     /*
     [TODO]
     Bolar algum jeito melhor de eliminar ruido.
@@ -113,6 +113,12 @@ float PrestoSensoring::getInput()
   e para a esquerda > 0
   */
   m_LastValue = (avg / (float)sum) - m_CenterPosition;
+
+  /*
+  Se tem um desvio grande da linha estamos em uma curva
+  */
+  m_InCurve = (abs(m_LastValue) > 0.3);
+
   return m_LastValue;
 }
 
@@ -261,7 +267,12 @@ void PrestoSensoring::update()
   // Marca de inicio/fim de curva
   else if(leftMark && !rightMark)
   {
-    m_InCurve = !m_InCurve;
+    /*
+    Essa linha está comentada pois estamos explorando a possibilidade de usar a
+    leitura dos sensores como indicativo de curva. Assim podemos controlar a
+    velocidade de forma mais dinâmica.
+    */
+    //m_InCurve = !m_InCurve;
   }
 }
 
@@ -269,7 +280,7 @@ bool PrestoSensoring::shouldStop(unsigned int rightMarks)
 {
   if(m_RightCount >= rightMarks)
   {
-    Serial.println("true_");
+    //Serial.println("true_");
     return true;
   }
   return false;

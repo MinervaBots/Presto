@@ -8,11 +8,11 @@ LineFollower::LineFollower(InputSource *pInputSource, SystemController *pSystemC
   setSystemController(pSystemController);
   setMotorController(pMotorController);
   setStatusPin(statusPin);
+  setLinearVelocity(75);
 }
 
 LineFollower::~LineFollower()
 {
-  // TODO - Como liberar a memória corretamente?
   /*
   delete m_pInputSource;
   delete m_pSystemController;
@@ -45,9 +45,24 @@ void LineFollower::update()
 {
   float input = m_pInputSource->getInput();
   float pidOutput = m_pSystemController->run(input);
-  if(abs(input) < 0.1)
+
+  /*
+  Se o erro for muito pequeno, não vale a pena tentar compensar com PID.
+  Seria necessário ter as constantes perfeitamente ajustadas, caso contrario,
+  ele supercompensaria e o erro só trocaria de lado, fazendo com que ele oscile
+  desnecessáriamente.
+  A solução que eu empreguei amenizar esse problema, basicamente aumentando o
+  intervalo de tempo entre a ocorrencia dele, já que o erro terá que ser um
+  pouquinho maior para afetar o sistema.
+
+  OBS: Não tenho certeza, mas acho que podemos mover a avaliação do PID pra
+  baixo desse 'if'. Isso vai evitar que façamos calculos inutilmente, mas também
+  poderia causar complicações com o controle I e D, que dependem da passagem do
+  tempo.
+  */
+  if(abs(input) < 0.07)
   {
-    m_pMotorController->move(200, 0);
+    m_pMotorController->move(m_LinearVelocity, 0);
     return;
   }
   /*
@@ -60,15 +75,14 @@ void LineFollower::update()
   CurrentLogger->writeLine("Input: %f. PID: %f", input, pidOutput);
 #endif
 
-  m_pMotorController->move(200, pidOutput);
-  //Serial.println("");
+  m_pMotorController->move(m_LinearVelocity, pidOutput);
 }
 
 bool LineFollower::shouldStop(unsigned long maxTime)
 {
   if(millis() - m_StartTime > maxTime)
   {
-    Serial.println("true");
+    //Serial.println("true");
     return true;
   }
   return false;

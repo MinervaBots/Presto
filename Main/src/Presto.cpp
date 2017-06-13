@@ -22,8 +22,7 @@ SimpleMovingAverageFilter simpleMovingAverageFilter(2);
   PIDController pidController;
 #endif
 
-WheelEncoder encoder(2, NOT_USED); // TODO: Ver qual o pino do encoder
-PrestoMotorController motorController(L_MOTOR_1_PIN, L_MOTOR_2_PIN, R_MOTOR_1_PIN, R_MOTOR_2_PIN);
+PrestoMotorController motorController;
 
 #ifdef DEBUG2
   #include "../lib/Logger/BufferLogger.hpp"
@@ -63,14 +62,8 @@ void setup()
 #endif
   presto.setSystemController(&pidController);
 
-  encoder.setTicksPerRevolution(12);
-  motorController.setEncoder(&encoder);
-  motorController.setWheelsRadius(0.185);
-  motorController.setWheelsDistance(0.143); // TODO - Medir isso novamente. Por causa do encoder, as rodas podem ficar mais proximas
-
+  motorController.setPins(L_MOTOR_PWM_PIN, L_MOTOR_DIR_PIN, R_MOTOR_PWM_PIN, R_MOTOR_DIR_PIN);
   motorController.setMaxPWM(140);
-  motorController.setActivationSmoothingValue(230);
-
   presto.setMotorController(&motorController);
 
   sensoring.setLineColor(LineColor::White);
@@ -83,6 +76,7 @@ void setup()
   presto.setInputSource(&simpleMovingAverageFilter);
 
   sensoring.calibrate(commandButton, STATUS_LED_PIN);
+  presto.setLinearVelocity(100);
   presto.start();
 }
 
@@ -99,7 +93,7 @@ void loop()
   Passando em 5 marcas do lado direito ou 20 segundos de prova ou o sinal
   do killswitch paramos o Presto.
   */
-  if(/*sensoring.shouldStop(5) /*|| presto.shouldStop(20000) ||*/ killSwitchSignal)
+  if(sensoring.shouldStop(5) || presto.shouldStop(20000) || killSwitchSignal)
   {
     if(presto.getIsRunning())
     {
@@ -113,7 +107,7 @@ void loop()
     {
 #ifdef DEBUG
       while(!commandButton.isPressed());
-      logger.writeLine("Encoder: %f.3", encoder.getTotalDistanceLeft());
+      //logger.writeLine("Encoder: %f.3", encoder.getTotalDistanceLeft());
       logger.writeLine("Tempo de prova: %d ms", presto.getStartTime() - presto.getStopTime());
       logger.writeLine("Kp: %f.3, Ki: %f.3, Kd: %f.3", pidController.getProportionalConstant(),
                         pidController.getIntegralConstant(), pidController.getDerivativeConstant());
@@ -132,10 +126,13 @@ void loop()
   }
 
   sensoring.update();
-  //motorController.inCurve = sensoring.inCurve();
+
+  /*
+  Se estivermos em curva reduz a velocidade linear pela metade
+  */
+  motorController.setLinearVelocityRatio(sensoring.inCurve() ? 0.5 : 1.0);
+  
   presto.update();
-  //Serial.print("Encoder: ");
-  //Serial.println(encoder.getTotalDistanceLeft());
 }
 
 ISR(PCINT0_vect)
@@ -206,10 +203,6 @@ void commandHandler()
   else if (strcmp(command, "/setMaxPWM") == 0)
   {
     motorController.setMaxPWM(atoi(value));
-  }
-  else if (strcmp(command, "/setSmoothingValue") == 0)
-  {
-    motorController.setActivationSmoothingValue(atoi(value));
   }
 }
 
