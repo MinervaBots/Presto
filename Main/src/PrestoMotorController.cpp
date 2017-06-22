@@ -4,35 +4,34 @@
 
 PrestoMotorController::PrestoMotorController(unsigned char leftPwmPin, unsigned char leftDirectionPin,
   unsigned char rightPwmPin, unsigned char rightDirectionPin) :
-  DifferentialDriveController(0, 0, nullptr, nullptr)
+  DifferentialDriveController(0, 0)
 {
   setPins(leftPwmPin, leftDirectionPin, rightPwmPin, rightDirectionPin);
-
-  // Velocidade máxima não parece ser uma boa ideia
-  setMaxPWM(200);
 }
 
-void PrestoMotorController::setPins(unsigned char leftPwmPin, unsigned char leftDirectionPin,
-  unsigned char rightPwmPin, unsigned char rightDirectionPin)
+void PrestoMotorController::setPins(unsigned char leftPin1, unsigned char leftPin2,
+  unsigned char rightPin1, unsigned char rightPin2)
 {
-  m_LeftPwmPin = leftPwmPin;
-  m_LeftDirectionPin = leftDirectionPin;
+  m_LeftPin1 = leftPin1;
+  m_LeftPin2 = leftPin2;
 
-  m_RightPwmPin = rightPwmPin;
-  m_RightDirectionPin = rightDirectionPin;
+  m_RightPin1 = rightPin1;
+  m_RightPin2 = rightPin2;
 
-  pinMode(m_LeftPwmPin, OUTPUT);
-  pinMode(m_LeftDirectionPin, OUTPUT);
+  pinMode(m_LeftPin1, OUTPUT);
+  pinMode(m_LeftPin2, OUTPUT);
 
-  pinMode(m_RightPwmPin, OUTPUT);
-  pinMode(m_RightDirectionPin, OUTPUT);
+  pinMode(m_RightPin1, OUTPUT);
+  pinMode(m_RightPin2, OUTPUT);
 }
 
 void PrestoMotorController::stop()
 {
   DifferentialDriveController::stop();
-  analogWrite(m_LeftPwmPin, 0);
-  analogWrite(m_RightPwmPin, 0);
+  digitalWrite(m_LeftPin1, LOW);
+  digitalWrite(m_LeftPin2, LOW);
+  digitalWrite(m_RightPin1, LOW);
+  digitalWrite(m_RightPin2, LOW);
 }
 
 void PrestoMotorController::update()
@@ -40,36 +39,46 @@ void PrestoMotorController::update()
 
 }
 
-void PrestoMotorController::setMaxPWM(unsigned int maxPWM)
-{
-  m_MaxPWM = maxPWM;
-  if(m_MaxPWM > 255)
-  {
-    m_MaxPWM = 255;
-  }
-}
-
 void PrestoMotorController::move(float linearVelocity, float angularVelocity)
 {
-  linearVelocity *= m_LinearVelocityRatio;
+  linearVelocity = constrain(linearVelocity, -255, 255);
 
-  m_LeftVelocity = linearVelocity + angularVelocity;
-  m_RightVelocity = linearVelocity - angularVelocity;
+  if((m_IsLeftForward = (angularVelocity > 0)))
+  {
+    m_LeftVelocity = linearVelocity;
+    m_RightVelocity = constrain(linearVelocity - angularVelocity, -255, 255);
 
-  /*
-  Essas linhas de código normalizam os valores de velocidade, resultando em
-  um deles sendo igual a 1, e o outro menor que 1.
-  Com isso eu garanto que nunca vou ter valores maior que 1 e posso multiplicar
-  os valores diretamente pela PWM máxima.
-  */
-  float maxVelocity = linearVelocity + abs(angularVelocity);
-  float normalizedLeftVelocity = abs(m_LeftVelocity) / maxVelocity;
-  float normalizedRightVelocity = abs(m_RightVelocity) / maxVelocity;
+    analogWrite(m_LeftPin1, m_LeftVelocity);
+    analogWrite(m_LeftPin2, 0);
 
+    if(m_RightVelocity < 0)
+    {
+      analogWrite(m_RightPin1, 0);
+      analogWrite(m_RightPin2, abs(floor(m_RightVelocity)));
+    }
+    else
+    {
+      analogWrite(m_RightPin1, abs(floor(m_RightVelocity)));
+      analogWrite(m_RightPin2, 0);
+    }
+  }
+  else
+  {
+    m_RightVelocity = linearVelocity;
+    m_LeftVelocity = constrain(linearVelocity + angularVelocity, -255, 255);
 
-	analogWrite(m_LeftPwmPin, floor(m_MaxPWM * normalizedLeftVelocity));
-	analogWrite(m_RightPwmPin, floor(m_MaxPWM * normalizedRightVelocity));
+    analogWrite(m_RightPin1, m_RightPin1);
+    analogWrite(m_RightPin2, 0);
 
-  digitalWrite(m_LeftDirectionPin, (m_LeftVelocity > 0) ? HIGH : LOW);
-  digitalWrite(m_RightDirectionPin, (m_RightVelocity > 0) ? HIGH : LOW);
+    if(m_LeftVelocity < 0)
+    {
+      analogWrite(m_LeftPin1, 0);
+      analogWrite(m_LeftPin2, abs(floor(m_LeftVelocity)));
+    }
+    else
+    {
+      analogWrite(m_LeftPin1, abs(floor(m_LeftVelocity)));
+      analogWrite(m_LeftPin2, 0);
+    }
+  }
 }

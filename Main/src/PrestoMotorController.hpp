@@ -7,28 +7,25 @@ class PrestoMotorController : public DifferentialDriveController
 {
 public:
   PrestoMotorController() : PrestoMotorController(255, 255, 255, 255) {}
-  PrestoMotorController(unsigned char leftPwmPin, unsigned char leftDirectionPin,
-    unsigned char rightPwmPin, unsigned char rightDirectionPin);
+  PrestoMotorController(unsigned char leftPin1, unsigned char leftPin2,
+    unsigned char rightPin1, unsigned char rightPin2);
 
   void stop();
   void update();
   void move(float linearVelocity, float angularVelocity);
 
-  void setMaxPWM(unsigned int maxPWM);
-  void setLinearVelocityRatio(float velocityRatio) { m_LinearVelocityRatio = velocityRatio; }
-
   void setPins(unsigned char leftPwmPin, unsigned char leftDirectionPin,
     unsigned char rightPwmPin, unsigned char rightDirectionPin);
 
+  bool IsLeftForward() { return m_IsLeftForward; }
+
 private:
-  unsigned char m_LeftPwmPin;
-  unsigned char m_LeftDirectionPin;
+  bool m_IsLeftForward;
+  unsigned char m_LeftPin1;
+  unsigned char m_LeftPin2;
 
-  unsigned char m_RightPwmPin;
-  unsigned char m_RightDirectionPin;
-
-  unsigned int m_MaxPWM;
-  float m_LinearVelocityRatio;
+  unsigned char m_RightPin1;
+  unsigned char m_RightPin2;
 };
 
 #endif // PrestoMotorController_hpp

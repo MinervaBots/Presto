@@ -60,22 +60,25 @@ void LineFollower::update()
   poderia causar complicações com o controle I e D, que dependem da passagem do
   tempo.
   */
+
   if(abs(input) < 0.07)
   {
-    m_pMotorController->move(m_LinearVelocity, 0);
+    m_pMotorController->move(200, 0);
     return;
   }
+
   /*
   Serial.print("Input: ");
   Serial.println(input);
   Serial.print("PID: ");
   Serial.println(pidOutput);
   */
+
 #ifdef DEBUG
   CurrentLogger->writeLine("Input: %f. PID: %f", input, pidOutput);
 #endif
 
-  m_pMotorController->move(m_LinearVelocity, pidOutput);
+  m_pMotorController->move(100, pidOutput);
 }
 
 bool LineFollower::shouldStop(unsigned long maxTime)

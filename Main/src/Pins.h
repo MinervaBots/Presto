@@ -13,11 +13,11 @@ unsigned char RightBorderSensorPin = 7;
 
 
 //Pinos do Microcontrolador
-#define L_MOTOR_PWM_PIN 11
-#define L_MOTOR_DIR_PIN 3
-#define R_MOTOR_PWM_PIN 9
-#define R_MOTOR_DIR_PIN 10
+#define LEFT_MOTOR_PIN_1 3
+#define LEFT_MOTOR_PIN_2 11
+#define RIGHT_MOTOR_PIN_1 10
+#define RIGHT_MOTOR_PIN_2 9
 #define BUZZER_PIN 12
-
+#define ENCODER_PIN 8
 
 #endif //Pins_h
