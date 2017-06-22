@@ -18,10 +18,8 @@ public:
   float getLeftVelocity() { return m_LeftVelocity; }
   float getRightVelocity() { return m_RightVelocity; }
 
-
   void setWheelsRadius(float wheelsRadius);
   void setWheelsDistance(float wheelsDistance);
-  void setPositionPointer(Position *pPosition) { m_pPosition = pPosition; }
 
 protected:
   float m_LeftVelocity;
@@ -30,8 +28,6 @@ protected:
 private:
   float m_WheelsRadius;
   float m_WheelsDistance;
-
-  Position *m_pPosition;
 };
 
 #endif //DifferentialDriveController_hpp
