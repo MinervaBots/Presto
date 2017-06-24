@@ -63,16 +63,19 @@ void PIDController::setTunings(float proportionalConstant, float integralConstan
 	Essa converção não é necessária, mas permite que a gente entre com
 	valores de KI e KD em termos de Hz (1/s)
 	*/
+/*
 	integralConstant /= 1000;
 	derivativeConstant /= 1000;
-
+//*/
 	m_IntegralConstant = integralConstant;
 	m_DerivativeConstant = derivativeConstant;
 
-
-	m_ProportionalConstant *= m_ControllerDirection;
-	m_IntegralConstant *= m_ControllerDirection;
-	m_DerivativeConstant *= m_ControllerDirection;
+	if(m_ControllerDirection == SystemControllerDirection::Inverse)
+	{
+		m_ProportionalConstant = -m_ProportionalConstant;
+		m_IntegralConstant = -m_IntegralConstant;
+		m_DerivativeConstant = -m_DerivativeConstant;
+	}
 }
 
 float PIDController::run(float input)
@@ -87,6 +90,7 @@ float PIDController::run(float input)
 
 float PIDController::compute(float input, unsigned long deltaTime, float proportionalConstant, float integralConstant, float derivativeConstant)
 {
+	//Serial.print("compute");
 	float error = m_SetPoint - input;
 
 	// Se o tempo de amostragem for fixo, faz deltaTime = 1 pra não afetar os valores das constantes
@@ -107,8 +111,8 @@ float PIDController::compute(float input, unsigned long deltaTime, float proport
 
 	Então a derivada do erro é igual a menos a derivada do sinal de entrada:
 	*/
-	float dInput = (input - m_LastInput) / deltaTime;
-	float dError = -dInput;
+	//float dError = (input - m_LastInput) / deltaTime;
+	float dError = (error - m_LastError) / deltaTime;
 	/*
 	Não acontece em nenhum dos nossos projetos, mas é uma implementação
 	melhor e o custo computacional é identico ao do PID clássico

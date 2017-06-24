@@ -8,6 +8,7 @@
 #include "../lib/CompilerDefinitions.h"
 #include "../lib/LineFollower/LineFollower.hpp"
 #include "../lib/Filter/SimpleMovingAverageFilter.hpp"
+#include "../lib/PIDController/PIDController.hpp"
 
 
 volatile bool killSwitchSignal = false;
@@ -17,16 +18,7 @@ volatile bool encoderBackwardTicksCount = 0;
 LineFollower presto;
 PrestoSensoring sensoring;
 Button commandButton(COMMAND_BUTTON_PIN, PULLDOWN);
-SimpleMovingAverageFilter simpleMovingAverageFilter(2);
-
-#ifdef USE_NON_LINEAR_PID
-  #include "../lib/PIDController/NonLinearPIDController.hpp"
-  NonLinearPIDController pidController;
-#else
-  #include "../lib/PIDController/PIDController.hpp"
-  PIDController pidController;
-#endif
-
+PIDController pidController;
 PrestoMotorController motorController;
 
 #ifdef DEBUG2
@@ -60,18 +52,15 @@ void setup()
   presto.setStatusPin(STATUS_LED_PIN);
 
   pidController.setSetPoint(0);
-  pidController.setSampleTime(10);
-  pidController.setOutputLimits(-255, 255);
+  //pidController.setSampleTime(10);
+  pidController.setOutputLimits(-300, 300);
   pidController.setControllerDirection(SystemControllerDirection::Inverse);
-  pidController.setTunings(40, 22, 3);
-
-#ifdef USE_NON_LINEAR_PID
-  pidControlleir.setMaxError(10.0);
-  pidController.setNonLinearConstanteCoeficients(0.5, 2, 0.5, 2, 2); // Pra ficar de acordo com os ultimos valores na antiga versão
-#endif
+  pidController.setTunings(155, 0, 14);
   presto.setSystemController(&pidController);
 
   motorController.setPins(LEFT_MOTOR_PIN_1, LEFT_MOTOR_PIN_2, RIGHT_MOTOR_PIN_1, RIGHT_MOTOR_PIN_2);
+
+
   presto.setMotorController(&motorController);
 
   sensoring.setLineColor(LineColor::White);
@@ -79,11 +68,10 @@ void setup()
   sensoring.setLeftSensor(LeftBorderSensorPin, 120, 3000);
   sensoring.setRightSensor(RightBorderSensorPin, 150, 3000);
 
-  simpleMovingAverageFilter.setInputSource(&sensoring);
-  presto.setInputSource(&simpleMovingAverageFilter);
+  presto.setInputSource(&sensoring);
 
   sensoring.calibrate(commandButton, STATUS_LED_PIN);
-  presto.setLinearVelocity(120);
+  presto.setLinearVelocity(150);
   presto.start();
 }
 
@@ -100,7 +88,7 @@ void loop()
   Passando em 5 marcas do lado direito ou 20 segundos de prova ou o sinal
   do killswitch paramos o Presto.
   */
-  if(sensoring.shouldStop(5) || presto.shouldStop(20000) || killSwitchSignal)
+  if(/*sensoring.shouldStop(5) ||*/ presto.shouldStop(20000) || killSwitchSignal)
   {
     if(presto.getIsRunning())
     {
@@ -136,7 +124,7 @@ void loop()
   /*
   Se estivermos em curva reduz a velocidade linear pela metade
   */
-  presto.setLinearVelocity(sensoring.inCurve() ? 60 : 120);
+  //presto.setLinearVelocity(sensoring.inCurve() ? 75 : 150);
 
   presto.update();
 }
