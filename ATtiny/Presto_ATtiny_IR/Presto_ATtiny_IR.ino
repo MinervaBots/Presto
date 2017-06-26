@@ -5,7 +5,6 @@
 #define HIGH_PIN 3
 #define KILL_SIGNAL 0x511DBB // Botão channel no controle da robocore
 
-
 IRrecv irrecv(IR_INPUT_PIN);
 decode_results results;
 
@@ -27,6 +26,8 @@ void loop()
     if(results.value == KILL_SIGNAL)
     {
       digitalWrite(IR_OUTPUT_PIN, HIGH);
+      delay(200);
+      digitalWrite(IR_OUTPUT_PIN, LOW);
     }
     irrecv.resume(); // Receive the next value
   }

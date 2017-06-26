@@ -112,6 +112,10 @@ float PrestoSensoring::getInput()
   Estando deslocado para a direita o resultado é < 0
   e para a esquerda > 0
   */
+  if(sum == 0)
+  {
+    return 0;
+  }
   m_LastValue = (avg / (float)sum) - m_CenterPosition;
 
   /*

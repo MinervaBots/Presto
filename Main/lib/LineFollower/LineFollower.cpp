@@ -45,13 +45,13 @@ void LineFollower::update()
 {
   float input = m_pInputSource->getInput();
   float pidOutput = m_pSystemController->run(input);
-
+  /*
   Serial.print("Input: ");
   Serial.println(input);
   Serial.print("PID: ");
   Serial.println(pidOutput);
   //delay(250);
-
+  //*/
   /*
   Se o erro for muito pequeno, não vale a pena tentar compensar com PID.
   Seria necessário ter as constantes perfeitamente ajustadas, caso contrario,
@@ -66,15 +66,15 @@ void LineFollower::update()
   poderia causar complicações com o controle I e D, que dependem da passagem do
   tempo.
   */
-//*
-  if(abs(input) < 0.07)
+  /*
+  if(abs(input) < 0.04)
   {
     m_pMotorController->move(m_LinearVelocity, 0);
     return;
   }
+  //*/
 
   m_pMotorController->move(m_LinearVelocity, pidOutput);
-//*/
 }
 
 bool LineFollower::shouldStop(unsigned long maxTime)

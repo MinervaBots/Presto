@@ -9,6 +9,7 @@
 #include "../lib/LineFollower/LineFollower.hpp"
 #include "../lib/Filter/SimpleMovingAverageFilter.hpp"
 #include "../lib/PIDController/PIDController.hpp"
+#include "../lib/EnableInterrupt/EnableInterrupt.h"
 
 
 volatile bool killSwitchSignal = false;
@@ -28,11 +29,13 @@ PrestoMotorController motorController;
 #endif
 
 void encoderInterruption();
+void killswitchInterruption();
 
 void setup()
 {
-  attachInterrupt(digitalPinToInterrupt(ENCODER_PIN), &encoderInterruption, CHANGE);
-
+  pinMode(KILLSWITCH_PIN, INPUT_PULLUP);
+  enableInterrupt(KILLSWITCH_PIN, &killswitchInterruption, RISING);
+  enableInterrupt(ENCODER_PIN, &encoderInterruption, CHANGE);
 //#ifdef DEBUG
   Serial.begin(9600);
 //#endif
@@ -44,18 +47,20 @@ void setup()
   mas futuramente isso deve ser estudado.
   Muito do potencial do Arduino se perde nas limitações da bibliteca.
   */
+  /*
   PCICR |= _BV(PCIE0);
   PCMSK0 |= _BV(PCINT0);
-
   sei();
+  */
 
   presto.setStatusPin(STATUS_LED_PIN);
 
   pidController.setSetPoint(0);
   //pidController.setSampleTime(10);
-  pidController.setOutputLimits(-300, 300);
+  pidController.setOutputLimits(-500, 500);
   pidController.setControllerDirection(SystemControllerDirection::Inverse);
-  pidController.setTunings(155, 0, 14);
+  //pidController.setTunings(210, 0.0005, 45); //CONSTANTES PID LIGOU!!!
+  pidController.setTunings(212, 0.0007, 48); //CONSTANTES PID
   presto.setSystemController(&pidController);
 
   motorController.setPins(LEFT_MOTOR_PIN_1, LEFT_MOTOR_PIN_2, RIGHT_MOTOR_PIN_1, RIGHT_MOTOR_PIN_2);
@@ -88,7 +93,7 @@ void loop()
   Passando em 5 marcas do lado direito ou 20 segundos de prova ou o sinal
   do killswitch paramos o Presto.
   */
-  if(/*sensoring.shouldStop(5) ||*/ presto.shouldStop(20000) || killSwitchSignal)
+  if(/*sensoring.shouldStop(5) ||*/ presto.shouldStop(5000) || killSwitchSignal)
   {
     if(presto.getIsRunning())
     {
@@ -129,14 +134,12 @@ void loop()
   presto.update();
 }
 
-ISR(PCINT0_vect)
+void killswitchInterruption()
 {
-  if (PINB & _BV(PB0))
-  {
-    Serial.println("Killswitch");
-    killSwitchSignal = true;
-  }
+  Serial.println("Killswitch");
+  killSwitchSignal = true;
 }
+
 
 void encoderInterruption()
 {
