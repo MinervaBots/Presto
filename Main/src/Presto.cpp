@@ -60,7 +60,7 @@ void setup()
   pidController.setOutputLimits(-500, 500);
   pidController.setControllerDirection(SystemControllerDirection::Inverse);
   //pidController.setTunings(210, 0.0005, 45); //CONSTANTES PID LIGOU!!!
-  pidController.setTunings(212, 0.0007, 48); //CONSTANTES PID
+  pidController.setTunings(250, 0, 200); //CONSTANTES PID 290, 0, 270
   presto.setSystemController(&pidController);
 
   motorController.setPins(LEFT_MOTOR_PIN_1, LEFT_MOTOR_PIN_2, RIGHT_MOTOR_PIN_1, RIGHT_MOTOR_PIN_2);
@@ -76,7 +76,7 @@ void setup()
   presto.setInputSource(&sensoring);
 
   sensoring.calibrate(commandButton, STATUS_LED_PIN);
-  presto.setLinearVelocity(150);
+  presto.setLinearVelocity(200);
   presto.start();
 }
 
@@ -93,7 +93,7 @@ void loop()
   Passando em 5 marcas do lado direito ou 20 segundos de prova ou o sinal
   do killswitch paramos o Presto.
   */
-  if(/*sensoring.shouldStop(5) ||*/ presto.shouldStop(5000) || killSwitchSignal)
+  if(/*sensoring.shouldStop(5) ||*/ presto.shouldStop(8000) || killSwitchSignal)
   {
     if(presto.getIsRunning())
     {
