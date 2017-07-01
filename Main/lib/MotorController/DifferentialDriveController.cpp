@@ -1,6 +1,5 @@
 #include "DifferentialDriveController.hpp"
 #include "../MathHelper/MathHelper.h"
-#include "../Logger/Logger.hpp"
 
 DifferentialDriveController::DifferentialDriveController(float wheelsRadius, float wheelsDistance)
 {
@@ -13,7 +12,7 @@ void DifferentialDriveController::setWheelsRadius(float wheelsRadius)
 #ifdef DEBUG
   if(wheelsRadius <= 0)
   {
-    CurrentLogger->writeLine("[DifferentialDriveController::setWheelsRadius] O raio das rodas não pode ser menor ou igual a 0");
+    Serial.println("[DifferentialDriveController::setWheelsRadius] O raio das rodas não pode ser menor ou igual a 0");
     return;
   }
 #endif
@@ -26,7 +25,7 @@ void DifferentialDriveController::setWheelsDistance(float wheelsDistance)
 #ifdef DEBUG
   if(wheelsDistance <= 0)
   {
-    CurrentLogger->writeLine("[DifferentialDriveController::setWheelsDistance] A distância entre as rodas deve ser maior ou igual a 0");
+    Serial.println("[DifferentialDriveController::setWheelsDistance] A distância entre as rodas deve ser maior ou igual a 0");
     return;
   }
 #endif

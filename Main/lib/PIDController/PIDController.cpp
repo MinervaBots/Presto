@@ -13,17 +13,6 @@ PIDController::PIDController(int sampleTime, float setPoint, float minOutput, fl
 	setControllerDirection(controllerDirection);
 }
 
-void PIDController::setSampleTime(int newSampleTime)
-{
-  if (newSampleTime > 0 && m_SampleTime > 0)
-	{
-		float ratio = newSampleTime / m_SampleTime;
-		m_IntegralConstant *= ratio;
-		m_DerivativeConstant /= ratio;
-  }
-  SystemController::setSampleTime(newSampleTime);
-}
-
 void PIDController::setOutputLimits(float min, float max)
 {
   SystemController::setOutputLimits(min, max);
@@ -34,39 +23,24 @@ void PIDController::setTunings(float proportionalConstant, float integralConstan
 {
 	if (proportionalConstant < 0 || integralConstant < 0 || derivativeConstant < 0)
 	{
+		proportionalConstant = abs(proportionalConstant);
+		integralConstant = abs(integralConstant);
+		derivativeConstant = abs(derivativeConstant);
 #ifdef DEBUG
-    CurrentLogger->writeLine("[PIDController::setTunings]: As constantes devem ser valores apenas positivos. Use o modo de operação inverso");
+		Serial.println("[PIDController::setTunings]: As constantes devem ser valores apenas positivos.");
+		Serial.println("\tAs constantes foram modificadas para o valor absoluto delas. Use o modo de operação inverso.");
 #endif
 	}
 
 	m_ProportionalConstant = proportionalConstant;
 
-	if(m_SampleTime != 0)
-	{
-		integralConstant *= m_SampleTime;
-		derivativeConstant /= m_SampleTime;
-		/*
-		A aplicação direta dos valores aqui nas constantes só é possivel
-		porque o tempo de avalição do PID é fixado*. Isso evita também que a
-		multiplicação e principalmente a divisão tenham que ser feitas
-		cada vez que o PID é calculado.
-
-		TL;DR: deixa o código mais rápido e mais eficiente.
-
-		*Se não for possivel manter o sistema com um tempo de amostragem fixo
-		essa otimização não pode ser aplicada.
-		Para isso o tempo de amostragem deve ser definido como 0.
-		*/
-	}
-
 	/*
 	Essa converção não é necessária, mas permite que a gente entre com
 	valores de KI e KD em termos de Hz (1/s)
 	*/
-/*
 	integralConstant /= 1000;
 	derivativeConstant /= 1000;
-//*/
+
 	m_IntegralConstant = integralConstant;
 	m_DerivativeConstant = derivativeConstant;
 
@@ -93,15 +67,18 @@ float PIDController::compute(float input, unsigned long deltaTime, float proport
 	//Serial.print("compute");
 	float error = m_SetPoint - input;
 
-	// Se o tempo de amostragem for fixo, faz deltaTime = 1 pra não afetar os valores das constantes
-	deltaTime = m_SampleTime != 0 ? 1 : deltaTime;
+	// Se o tempo de amostragem for fixo, faz deltaTime = m_SampleTime
+	deltaTime = (m_SampleTime != 0) ? m_SampleTime : deltaTime;
 
 	/*
-	Faz a derivada das entradas para evitar o "derivative kick", que ocorre mudando
-	o setPoint. Esse fenomeno ocorre pois mudar o valor do setPoint causa uma
-	variação instantânea no erro, e a derivada parcial desse erro em relação
-	ao tempo é "infinito" (na prática dt não é zero então só acaba sendo um valor muito muito grande).
-	Esse número entra no PID causando um pico indesejável no sinal de saída.
+		Faz a derivada das entradas para evitar o "derivative kick", que ocorre
+	mudando 	o setPoint. Esse fenomeno ocorre pois mudar o valor do setPoint
+	causa uma 	variação instantânea no erro, e a derivada parcial desse erro em
+	relação ao tempo é "infinito" (na prática dt não é zero então só acaba sendo
+	um valor muito muito grande). Esse número entra no PID causando um pico
+	indesejável no sinal de saída.
+		(Trocar o setPoint não acontece em nenhum dos nossos projetos, mas é uma
+	implementação melhor e o custo computacional é identico ao do PID clássico).
 
 	Solução:
 	 				d E(t) / dt = (d SP(t) / dt) - (d Input(t)/dt)
@@ -111,37 +88,34 @@ float PIDController::compute(float input, unsigned long deltaTime, float proport
 
 	Então a derivada do erro é igual a menos a derivada do sinal de entrada:
 	*/
-	//float dError = (input - m_LastInput) / deltaTime;
-	float dError = (error - m_LastError) / deltaTime;
-	/*
-	Não acontece em nenhum dos nossos projetos, mas é uma implementação
-	melhor e o custo computacional é identico ao do PID clássico
-	*/
+	float dError = (input - m_LastInput) / deltaTime;
+	//float dError = (error - m_LastError) / deltaTime;
+
 
 	/*
-	Salva o valor acumulado do fator integrativo
-	Isso torna possivel mudar a constante integrativa sem gerar uma mudança busca
-	na saída, já que o coeficinte que multiplicava o acumulo do erro já não é mais o mesmo.
-	Se o Ki muda, então não podemos deixa-lo fora da integral como descrito dos algoritmos de PID clássicos
-	logo nossa equação para o termo integrativo fica:
+		Salva o valor acumulado do fator integrativo
+		Isso torna possivel mudar a constante integrativa sem gerar uma mudança
+	brusca na saída, já que o coeficinte que multiplicava o acumulo do erro já
+	não é mais o mesmo. Se o Ki muda, então não podemos deixa-lo fora da integral
+	como descrito dos algoritmos de PID clássicos logo nossa equação para o termo
+	integrativo fica:
 
 	 							Integral [t=0, t=m_Now] { Ki(t) * e(t) * dt }
 
-	Na verdade essa equação é o "jeito certo" de se fazer PID, mas considerando Ki constante,
+		Na verdade essa equação é o "jeito certo" de se fazer PID, mas considerando Ki constante,
 	a constante saí da integral e simplifica o calculo.
 
 	Isso implementado resulta em:
 	 				m_IntegrativeTermSum += error * integralConstant * deltaTime;
 
 	Usando a aproximação trapezoidal para a integral fica:
-	*/
-	m_IntegrativeTermSum += deltaTime * integralConstant * (m_LastError + error) / 2.0;
-	/*
-	Esse é um calculo um pouco mais custoso, faz uma discretização mais correta do tempo pro PID
+	(Esse é um calculo um pouco mais custoso, faz uma discretização mais correta do tempo pro PID
 	Existem outras aproximações que podemos explorar, mas não sei se é realmente necessário.
 	Acho que na verdade esse tipo de aproximação não chega a fazer uma diferença real
-	nos nossos casos de uso.
+	nos nossos casos de uso.)
 	*/
+	m_IntegrativeTermSum += deltaTime * integralConstant * (m_LastError + error) / 2.0;
+
 
 	float output = proportionalConstant * error;	// Proporcional
 	output += m_IntegrativeTermSum; 							// Integrativo
@@ -173,7 +147,6 @@ float PIDController::compute(float input, unsigned long deltaTime, float proport
 		m_IntegrativeTermSum += m_MinOutput - output;
 		output = m_MinOutput;
 	}
-	// TODO: Isso (^) ainda deve ser testado
 
 	// Salva os valores pra proxima execução
 	m_LastOutput = output;

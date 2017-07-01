@@ -11,7 +11,6 @@ public:
 										float proportionalConstant, float integralConstant, float derivativeConstant,
 									SystemControllerDirection controllerDirection);
 
-	virtual void setSampleTime(int newSampleTime);
   void setOutputLimits(float min, float max);
   virtual void setTunings(float proportionalConstant, float integralConstant, float derivativeConstant);
   virtual float run(float intput);

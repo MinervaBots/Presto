@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 #include "../CompilerDefinitions.h"
-#include "../Logger/Logger.hpp"
 
 enum SystemControllerDirection
 {

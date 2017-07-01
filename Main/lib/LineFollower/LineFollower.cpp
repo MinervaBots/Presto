@@ -1,6 +1,5 @@
-#include "LineFollower.hpp"
-#include "../Logger/Logger.hpp"
 #include <Arduino.h>
+#include "LineFollower.hpp"
 
 LineFollower::LineFollower(InputSource *pInputSource, SystemController *pSystemController, MotorController *pMotorController, unsigned char statusPin)
 {
@@ -43,15 +42,16 @@ void LineFollower::setStatusPin(unsigned char statusPin)
 
 void LineFollower::update()
 {
-  float input = m_pInputSource->getInput();
-  float pidOutput = m_pSystemController->run(input);
-  /*
-  Serial.print("Input: ");
-  Serial.println(input);
+  float lineError = m_pInputSource->getInput();
+  float pidOutput = m_pSystemController->run(lineError);
+
+/*
+  Serial.print("Line Error: ");
+  Serial.print(lineError);
+  Serial.print("\t");
   Serial.print("PID: ");
   Serial.println(pidOutput);
-  //delay(250);
-  //*/
+  */
   /*
   Se o erro for muito pequeno, não vale a pena tentar compensar com PID.
   Seria necessário ter as constantes perfeitamente ajustadas, caso contrario,
@@ -69,20 +69,18 @@ void LineFollower::update()
   /*
   if(abs(input) < 0.04)
   {
-    m_pMotorController->move(m_LinearVelocity, 0);
+    m_pMotorController->move(m_LinearVelocity*1.5, 0);
     return;
   }
   //*/
 
-  m_pMotorController->move(m_LinearVelocity, pidOutput);
+  float linearVelocityCorrection = 0.5 + (1 / (1 + exp(abs(lineError * 7.635))));
+  float linearVelocity = m_LinearVelocity * linearVelocityCorrection;
+  m_pMotorController->move(linearVelocity, pidOutput);
+  //delay(200);
 }
 
 bool LineFollower::shouldStop(unsigned long maxTime)
 {
-  if(millis() - m_StartTime > maxTime)
-  {
-    //Serial.println("true");
-    return true;
-  }
-  return false;
+  return (millis() - m_StartTime > maxTime);
 }

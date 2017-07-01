@@ -41,21 +41,19 @@ void PrestoMotorController::update()
 
 void PrestoMotorController::move(float linearVelocity, float angularVelocity)
 {
-  linearVelocity = constrain(linearVelocity, -255, 255);
+  m_LeftVelocity = constrain(linearVelocity - angularVelocity, -255, 255);
+  m_RightVelocity = constrain(linearVelocity + angularVelocity, -255, 255);
 
-  m_LeftVelocity = constrain(linearVelocity + angularVelocity, -255, 255);
-  m_RightVelocity = constrain(linearVelocity - angularVelocity, -255, 255);
-  /*
-  Serial.print("Direita: ");
+/*
+  Serial.print("Left Velocity: ");
+  Serial.print(m_LeftVelocity);
+  Serial.print("\tRight Velocity: ");
   Serial.println(m_RightVelocity);
-  Serial.print("Esquerda: ");
-  Serial.println(m_LeftVelocity);
-  delay(500);
-  //*/
+//*/
+
   if(m_LeftVelocity < 0)
   {
     m_IsLeftForward = false;
-    //analogWrite(m_LeftPin1, 0);
     analogWrite(m_LeftPin1, abs(floor(m_LeftVelocity)));
     analogWrite(m_LeftPin2, 0);
   }
@@ -63,62 +61,17 @@ void PrestoMotorController::move(float linearVelocity, float angularVelocity)
   {
     m_IsLeftForward = true;
     analogWrite(m_LeftPin1, 0);
-    analogWrite(m_LeftPin2, abs(floor(m_LeftVelocity)));
+    analogWrite(m_LeftPin2, floor(m_LeftVelocity));
   }
 
   if(m_RightVelocity < 0)
   {
-    //analogWrite(m_RightPin1, 0);
     analogWrite(m_RightPin1, abs(floor(m_RightVelocity)));
     analogWrite(m_RightPin2, 0);
   }
   else
   {
     analogWrite(m_RightPin1, 0);
-    analogWrite(m_RightPin2, abs(floor(m_RightVelocity)));
+    analogWrite(m_RightPin2, floor(m_RightVelocity));
   }
-  /*
-  if(angularVelocity == 0)
-  {
-    analogWrite(m_LeftPin1, 0);
-    analogWrite(m_LeftPin2, abs(floor(m_LeftVelocity)));
-
-    analogWrite(m_RightPin1, 0);
-    analogWrite(m_RightPin2, abs(floor(m_RightVelocity)));
-  }
-  else if(angularVelocity < 0)
-  {
-    analogWrite(m_LeftPin1, abs(floor(m_LeftVelocity)));
-    analogWrite(m_LeftPin2, 0);
-    m_IsLeftForward = true;
-
-    if(m_RightVelocity < 0)
-    {
-      analogWrite(m_RightPin1, abs(floor(m_RightVelocity)));
-      analogWrite(m_RightPin2, 0);
-    }
-    else
-    {
-      analogWrite(m_RightPin1, 0);
-      analogWrite(m_RightPin2, abs(floor(m_RightVelocity)));
-    }
-  }
-  else
-  {
-    analogWrite(m_RightPin1, abs(floor(m_RightVelocity)));
-    analogWrite(m_RightPin2, 0);
-    if(m_LeftVelocity < 0)
-    {
-      m_IsLeftForward = false;
-      analogWrite(m_LeftPin1, abs(floor(m_LeftVelocity)));
-      analogWrite(m_LeftPin2, 0);
-    }
-    else
-    {
-      m_IsLeftForward = true;
-      analogWrite(m_LeftPin1, 0);
-      analogWrite(m_LeftPin2, abs(floor(m_LeftVelocity)));
-    }
-  }
-  */
 }

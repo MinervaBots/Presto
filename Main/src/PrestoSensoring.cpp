@@ -1,5 +1,4 @@
 #include "PrestoSensoring.hpp"
-#include "../lib/Logger/Logger.hpp"
 
 PrestoSensoring::PrestoSensoring()
 {
@@ -106,18 +105,15 @@ float PrestoSensoring::getInput()
   Serial.print("avg: ");
   Serial.println(avg);
   */
+
+
   /*
   Normaliza a saída do array pra um valor entre -1 e 1
   Dessa forma quando estiver centralizado na linha o resultado é 0
   Estando deslocado para a direita o resultado é < 0
   e para a esquerda > 0
   */
-  if(sum == 0)
-  {
-    return 0;
-  }
-  m_LastValue = (avg / (float)sum) - m_CenterPosition;
-
+  m_LastValue = ((avg / (float)sum) - m_CenterPosition) / m_CenterPosition;
   /*
   Se tem um desvio grande da linha estamos em uma curva
   */
@@ -213,9 +209,10 @@ void PrestoSensoring::calibrate(Button commandButton, unsigned char statusLedPin
     //Serial.println(m_SensorArrayMaxReading[i]);
   }
 
-#ifdef DEBUG2
-  CurrentLogger->writeLine("Calibração concluída");
+#ifdef DEBUG
+  Serial.println("Calibração concluída");
 #endif
+
   digitalWrite(statusLedPin, LOW);
   delay(250);
 
@@ -282,12 +279,7 @@ void PrestoSensoring::update()
 
 bool PrestoSensoring::shouldStop(unsigned int rightMarks)
 {
-  if(m_RightCount >= rightMarks)
-  {
-    //Serial.println("true_");
-    return true;
-  }
-  return false;
+  return m_RightCount >= rightMarks;
 }
 
 unsigned int PrestoSensoring::clamp(unsigned int value, unsigned int min, unsigned int max)
