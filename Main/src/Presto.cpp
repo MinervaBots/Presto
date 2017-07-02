@@ -1,10 +1,10 @@
 #include "Includes.h"
 
-const float kp = 140;
+const float kp = 165;
 const float ki = 0;
-const float kd = 0.14;
+const float kd = 0.25;
 const int maxVelocity = 150;
-const int stopTime = 20000;
+const int stopTime = 10000;
 const int rightBorderMarksLimit = 100;
 const LineColor lineColor = LineColor::White;
 
