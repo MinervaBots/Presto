@@ -38,8 +38,10 @@ void PIDController::setTunings(float proportionalConstant, float integralConstan
 	Essa converção não é necessária, mas permite que a gente entre com
 	valores de KI e KD em termos de Hz (1/s)
 	*/
+	/*
 	integralConstant /= 1000;
 	derivativeConstant /= 1000;
+	*/
 
 	m_IntegralConstant = integralConstant;
 	m_DerivativeConstant = derivativeConstant;
@@ -88,7 +90,7 @@ float PIDController::compute(float input, unsigned long deltaTime, float proport
 
 	Então a derivada do erro é igual a menos a derivada do sinal de entrada:
 	*/
-	float dError = (input - m_LastInput) / deltaTime;
+	float dError = -(input - m_LastInput) / deltaTime;
 	//float dError = (error - m_LastError) / deltaTime;
 
 

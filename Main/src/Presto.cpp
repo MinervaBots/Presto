@@ -1,10 +1,13 @@
+//#define DEBUG
+
 #include "Includes.h"
 
-const float kp = 165;
+const float kp = 145;
 const float ki = 0;
-const float kd = 0.25;
+const float kd = 1790;
+
 const int maxVelocity = 150;
-const int stopTime = 10000;
+const int stopTime = 12000;
 const int rightBorderMarksLimit = 100;
 const LineColor lineColor = LineColor::White;
 
@@ -37,7 +40,7 @@ void setup()
 
   pidController.setSetPoint(0);
   pidController.setSampleTime(5);
-  pidController.setOutputLimits(-255, 255);
+  pidController.setOutputLimits(-500, 500);
   pidController.setControllerDirection(SystemControllerDirection::Direct);
   pidController.setTunings(kp, ki, kd); //CONSTANTES PID 290, 0, 270
   presto.setSystemController(&pidController);

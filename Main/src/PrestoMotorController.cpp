@@ -44,12 +44,12 @@ void PrestoMotorController::move(float linearVelocity, float angularVelocity)
   m_LeftVelocity = constrain(linearVelocity - angularVelocity, -255, 255);
   m_RightVelocity = constrain(linearVelocity + angularVelocity, -255, 255);
 
-/*
+#ifdef DEBUG
   Serial.print("Left Velocity: ");
   Serial.print(m_LeftVelocity);
   Serial.print("\tRight Velocity: ");
   Serial.println(m_RightVelocity);
-//*/
+#endif
 
   if(m_LeftVelocity < 0)
   {
