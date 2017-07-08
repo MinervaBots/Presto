@@ -1,14 +1,28 @@
 //#define DEBUG
-
 #include "Includes.h"
+/*
+primeiro dia tomada de tempo-testes
+const float kp = 202;
+const float ki = 0.00;
+const float kd = 1940;
 
-const float kp = 145;
+const int maxVelocity = 125;
+const int stopTime = 20000;
+*/
+
+/*
+testes do dia da inspeção-testes
+*/
+
+const int maxVelocity = 115;
+const int stopTime = 20000;
+const float kp = 205;
 const float ki = 0;
-const float kd = 1790;
+const float kd = 2400;
 
-const int maxVelocity = 150;
-const int stopTime = 12000;
-const int rightBorderMarksLimit = 100;
+
+const int rightSensorTime = 20000;
+const int rightBorderMarksLimit = 500;
 const LineColor lineColor = LineColor::White;
 
 
@@ -30,17 +44,19 @@ void killswitchInterruption();
 
 void setup()
 {
+#ifdef DEBUG
   Serial.begin(9600);
+#endif
 
+  pinMode(BUZZER_PIN, OUTPUT);
   pinMode(KILLSWITCH_PIN, INPUT_PULLUP);
-  enableInterrupt(KILLSWITCH_PIN, &killswitchInterruption, RISING);
-  enableInterrupt(ENCODER_PIN, &encoderInterruption, CHANGE);
-
+  //enableInterrupt(KILLSWITCH_PIN, &killswitchInterruption, RISING);
+  //enableInterrupt(ENCODER_PIN, &encoderInterruption, CHANGE);
   presto.setStatusPin(STATUS_LED_PIN);
 
   pidController.setSetPoint(0);
   pidController.setSampleTime(5);
-  pidController.setOutputLimits(-500, 500);
+  pidController.setOutputLimits(-255 - maxVelocity, 255 + maxVelocity);
   pidController.setControllerDirection(SystemControllerDirection::Direct);
   pidController.setTunings(kp, ki, kd); //CONSTANTES PID 290, 0, 270
   presto.setSystemController(&pidController);
@@ -50,9 +66,9 @@ void setup()
   presto.setMotorController(&motorController);
 
   sensoring.setLineColor(lineColor);
-  sensoring.setSensorArray(SensorArrayPins, arraySize(SensorArrayPins), 500);
-  sensoring.setLeftSensor(LeftBorderSensorPin, 120, 3000);
-  sensoring.setRightSensor(RightBorderSensorPin, 150, 3000);
+  sensoring.setSensorArray(SensorArrayPins, arraySize(SensorArrayPins), 200);
+  sensoring.setLeftSensor(LeftBorderSensorPin, 0, 3000);
+  sensoring.setRightSensor(RightBorderSensorPin, rightSensorTime, 1000);
 
   presto.setInputSource(&sensoring);
 
@@ -68,12 +84,14 @@ void loop()
   Passando em 5 marcas do lado direito ou 20 segundos de prova ou o sinal
   do killswitch paramos o Presto.
   */
-  if(/*sensoring.shouldStop(rightBorderMarksLimit) || */presto.shouldStop(stopTime)/* || killSwitchSignal*/)
+  if(sensoring.shouldStop(rightBorderMarksLimit) || presto.shouldStop(stopTime)/* || killSwitchSignal*/)
   {
     if(presto.getIsRunning())
     {
       presto.stop();
       Serial.println("Parou");
+      delay(1000);
+      digitalWrite(BUZZER_PIN, LOW);
     }
     else
     {
