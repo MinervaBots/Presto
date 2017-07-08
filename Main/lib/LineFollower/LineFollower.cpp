@@ -54,8 +54,8 @@ void LineFollower::update()
   delay(250);
 #endif
 
-  float linearVelocityCorrection = 0.5 + (1 / (1 + exp(abs(lineError * 7.635))));
-  float linearVelocity = m_LinearVelocity * linearVelocityCorrection;
+  //float linearVelocityCorrection = 0.5 + (1 / (1 + exp(abs(lineError * 7.635))));
+  float linearVelocity = m_LinearVelocity;// * linearVelocityCorrection;
   m_pMotorController->move(linearVelocity, pidOutput);
 }
 
