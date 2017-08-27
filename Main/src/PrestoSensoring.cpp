@@ -1,8 +1,9 @@
 #include "PrestoSensoring.hpp"
 
-PrestoSensoring::PrestoSensoring()
+PrestoSensoring::PrestoSensoring(HardwareSerial *serial)
 {
-
+  m_serial = serial;
+  serial->begin(9600);
 }
 
 void PrestoSensoring::setLeftSensor(unsigned char sensorPin, unsigned long sampleTime, unsigned long timeout)
@@ -295,4 +296,12 @@ unsigned int PrestoSensoring::clamp(unsigned int value, unsigned int min, unsign
       return 1000;
 
   return x;
+}
+
+// TODO: Abstrair o caracter usado para sinalizar a parada para um define no header
+// TODO: Tratar caracteres inesperados
+bool PrestoSensoring::killswitch() {
+  if(m_serial->available() > 0)
+    m_killswitchSignal = (m_serial->read() == '1' ? false : true);
+  return m_killswitchSignal;
 }

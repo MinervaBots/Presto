@@ -2,6 +2,7 @@
 #define PrestoSensoring_hpp
 
 //#include "../lib/CompilerDefinitions.h"
+#include <HardwareSerial.h>
 #include "../lib/InputSource/InputSource.hpp"
 #include "../lib/Button/Button.h"
 
@@ -14,7 +15,7 @@ enum LineColor
 class PrestoSensoring : public InputSource
 {
 public:
-  PrestoSensoring();
+  PrestoSensoring(HardwareSerial *serial);
   void setLineColor(LineColor lineColor) { m_LineColor = lineColor; }
   void setSensorArray(unsigned char* arrayPins, unsigned char pinsCount, unsigned long timeout);
   void setLeftSensor(unsigned char sensorPin, unsigned long sampleTime, unsigned long timeout);
@@ -25,13 +26,16 @@ public:
   void update();
   bool shouldStop(unsigned int rightMarks);
   bool inCurve() { return m_InCurve; }
+  bool killswitch();
 
   float getInput();
 
 private:
   LineColor m_LineColor;
 
+  HardwareSerial *m_serial;
   bool m_InCurve;
+  bool m_killswitchSignal;
   unsigned char m_LeftSensorPin;
   unsigned long m_LeftSampleTime;
   unsigned int m_LeftMinReading;

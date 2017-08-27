@@ -1,4 +1,3 @@
-//#define DEBUG
 #include "Includes.h"
 /*
 primeiro dia tomada de tempo-testes
@@ -32,7 +31,7 @@ volatile bool encoderBackwardTicksCount = 0;
 
 
 LineFollower presto;
-PrestoSensoring sensoring;
+PrestoSensoring sensoring(&Serial);     // Serial is used by PrestoSensoring to interface with the bluetooth module
 Button commandButton(COMMAND_BUTTON_PIN, PULLDOWN);
 PIDController pidController;
 PrestoMotorController motorController;
@@ -44,10 +43,6 @@ void killswitchInterruption();
 
 void setup()
 {
-#ifdef DEBUG
-  Serial.begin(9600);
-#endif
-
   pinMode(BUZZER_PIN, OUTPUT);
   pinMode(KILLSWITCH_PIN, INPUT_PULLUP);
   //enableInterrupt(KILLSWITCH_PIN, &killswitchInterruption, RISING);
@@ -84,7 +79,7 @@ void loop()
   Passando em 5 marcas do lado direito ou 20 segundos de prova ou o sinal
   do killswitch paramos o Presto.
   */
-  if(sensoring.shouldStop(rightBorderMarksLimit) || presto.shouldStop(stopTime)/* || killSwitchSignal*/)
+  if(sensoring.shouldStop(rightBorderMarksLimit) || sensoring.killswitch() || presto.shouldStop(stopTime))
   {
     if(presto.getIsRunning())
     {
