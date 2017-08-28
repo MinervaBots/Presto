@@ -43,6 +43,7 @@ void killswitchInterruption();
 
 void setup()
 {
+  Serial.begin(9600);
   pinMode(BUZZER_PIN, OUTPUT);
   pinMode(KILLSWITCH_PIN, INPUT_PULLUP);
   //enableInterrupt(KILLSWITCH_PIN, &killswitchInterruption, RISING);
@@ -67,7 +68,7 @@ void setup()
 
   presto.setInputSource(&sensoring);
 
-  sensoring.calibrate(commandButton, STATUS_LED_PIN);
+  // sensoring.calibrate(commandButton, STATUS_LED_PIN);
   presto.setLinearVelocity(maxVelocity);
   presto.start();
 }
@@ -79,7 +80,7 @@ void loop()
   Passando em 5 marcas do lado direito ou 20 segundos de prova ou o sinal
   do killswitch paramos o Presto.
   */
-  if(sensoring.shouldStop(rightBorderMarksLimit) || sensoring.killswitch() || presto.shouldStop(stopTime))
+  if(/*sensoring.shouldStop(rightBorderMarksLimit) || */sensoring.killswitch()/* || presto.shouldStop(stopTime)*/)
   {
     if(presto.getIsRunning())
     {
@@ -91,10 +92,10 @@ void loop()
     else
     {
       // Aguarda apertar de novo pra recomeçar a execução
-      while(!commandButton.isPressed());
+      while(sensoring.killswitch());
 
       //delay(250); // Sem essa linha, muito provavelmente ele vai pular direto pro while de calibração
-      sensoring.calibrate(commandButton, STATUS_LED_PIN);
+      // sensoring.calibrate(commandButton, STATUS_LED_PIN);
       killSwitchSignal = false;
       presto.start();
     }
@@ -108,23 +109,3 @@ void loop()
   //presto.setLinearVelocity(sensoring.inCurve() ? 75 : 150);
   presto.update();
 }
-
-
-//--Interruptions---------------------------------------------------------------
-
-void killswitchInterruption()
-{
-  Serial.println("Killswitch");
-  killSwitchSignal = true;
-}
-
-
-void encoderInterruption()
-{
-  if(motorController.IsLeftForward())
-    encoderForwardTicksCount++;
-  else
-    encoderBackwardTicksCount++;
-}
-
-//-----------------------------------------------------------------------------

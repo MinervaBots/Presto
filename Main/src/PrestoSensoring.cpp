@@ -3,7 +3,7 @@
 PrestoSensoring::PrestoSensoring(HardwareSerial *serial)
 {
   m_serial = serial;
-  serial->begin(9600);
+  m_killswitchSignal = false;
 }
 
 void PrestoSensoring::setLeftSensor(unsigned char sensorPin, unsigned long sampleTime, unsigned long timeout)
