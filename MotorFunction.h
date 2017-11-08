@@ -1,4 +1,4 @@
-
+#include "pins.h"
 
 #define MINIMUM_SPEED 0
 #define ENTRE_EIXOS 1
@@ -58,5 +58,3 @@ void motorController(float linear,float angular){
 
 
 // a ideia dessa função é controlar a velocidade entre seu máximo e mínimo
-
-

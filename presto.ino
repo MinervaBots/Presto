@@ -1,16 +1,20 @@
 //falta programar o inicio (parte da calibração
+#include <Button.h>
 
-#include "Includes.h"
+#include "pins.h"
+#include "PID.h"
+#include "SensorRead.h"
 
 #define STARTUP_DELAY 300
 
-Button button(BUTTON_PIN,PULLDOWN);
-
+Button button(BUTTON_PIN, BUTTON_PULLDOWN, true, 500);
 
 //não tenho certeza de onde colocar essas variáveis 
 int start = 1;
 int leitura = 0;
 float stopTime = 0;
+
+void setupPins(void);
 
 void setup() {
   Serial.begin(9600);
@@ -18,19 +22,19 @@ void setup() {
   setupPins();
   // Calibrar sensores
   while(!button.isPressed());  // Aguarda o botão ser precionado para iniciar calibração
+
+  Serial.println("Botão Apertado");
   
-  #ifdef DEBUG
-   Serial.println("Butão Apertado");
-  #endif
-  digitalWrite(LED_PIN,1);
-  
-  #ifdef DEBUG
-   Serial.println("Calibrando");
-  #endif
+  digitalWrite(LED_PIN, HIGH);
+
+  Serial.println("Começando a calibrar");
   while(!button.isPressed()) {
-   calibrateSensors(frontalSensors, rightSensor, leftSensor);
+    Serial.println("Calibrando");
+    calibrateSensors(frontalSensors, rightSensor, leftSensor);
   }
-  
+  Serial.println("Fim da calibração");
+  Serial.println(LED_PIN, LOW);
+
   // Delay inicial
   delay(STARTUP_DELAY);
 }
@@ -61,14 +65,13 @@ void loop() {
     }
     
     // função de parada pelo bluetooth
-    if(leitura =! 49){
+    if(leitura != 49){
       start = 0;
       stopTime = millis();
     }
     
   }
 }
-
 
 void setupPins(void) {
   pinMode(BUZZER_PIN,OUTPUT);

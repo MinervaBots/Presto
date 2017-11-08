@@ -1,6 +1,0 @@
-#include "pins.h"
-#include "MotorFunction.h"
-#include "PID.h"
-#include "QTRSensors.cpp"
-#include "Button.cpp"
-#include "SensorRead.h"
