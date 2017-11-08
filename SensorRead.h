@@ -56,6 +56,21 @@ void readLeft(){
   }
 }
 
+unsigned int calculateError(unsigned int num_sensors, unsigned int *readings, unsigned int weights) {
+  int error = 0, weight = -num_sensors/2, even = !num_sensors%2;
+
+  for(int i = 0; i < num_sensors; i++) {
+    weight++;
+
+    if(even && weight == 0)
+      weight++;
+      
+    error += readings[i]*weight;
+  }
+
+  return error;
+}
+
 void calibrateSensors(QTRSensorsRC *frontal, QTRSensorsRC *left, QTRSensorsRC *right) {
   frontal->calibrate();
   left->calibrate();
