@@ -7,7 +7,9 @@
 
 #define STARTUP_DELAY 300
 
-Button button(BUTTON_PIN, BUTTON_PULLDOWN, true, 500);
+unsigned int sensor_values[8] = {0,0,0,0,0,0,0,0};
+
+Button button(BUTTON_PIN, BUTTON_PULLDOWN);
 
 //não tenho certeza de onde colocar essas variáveis 
 int start = 1;
@@ -24,13 +26,16 @@ void setup() {
   while(!button.isPressed());  // Aguarda o botão ser precionado para iniciar calibração
 
   Serial.println("Botão Apertado");
+
+  // Tempo de debounce
+  delay(500);
   
   digitalWrite(LED_PIN, HIGH);
 
   Serial.println("Começando a calibrar");
   while(!button.isPressed()) {
     Serial.println("Calibrando");
-    calibrateSensors(frontalSensors, rightSensor, leftSensor);
+    calibrateSensors(&frontalSensors, &rightSensor, &leftSensor);
   }
   Serial.println("Fim da calibração");
   Serial.println(LED_PIN, LOW);

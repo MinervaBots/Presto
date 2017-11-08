@@ -4,8 +4,7 @@ float KI= 0; //constante de integração
 float KP = 0; //constante de proporcionalidade
 float KD = 0; // constante de derivação
 float DT = 0; // derivação do tempo
-float lastRun = 0; // ultima vez que rodou o pid
-float lastError = 0; // ultimo erro
+
 float MAX_OUTPUT = 5;
 float MIN_OUTPUT = -5;
 float output = 0.0;
@@ -24,10 +23,11 @@ void setConstantPID (float integrative, float proportional, float derivative,flo
 }
 
 float controllerPID (float error){
-  if(millis() - lastRun > DT*100){
-    return output;
-  }
-  float dError = -(error - lastErro)/DT;  //verificar o sinal
+  static unsigned int lastRun = millis();
+  static float lastError = error;
+  
+  // Isso pode causar uma divisão por zero
+  float dError = -(error - lastError)/(millis() - lastRun);  //verificar o sinal
   Integral += KI*DT*error;
   
   float output = KP*error;

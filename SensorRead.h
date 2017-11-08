@@ -56,8 +56,8 @@ void readLeft(){
   }
 }
 
-void calibrateSensors(QTRSensorsRC frontal, QTRSensorsRC left, QTRSensorsRC right) {
-  frontal.calibrate();
-  left.calibrate();
-  right.calibrate();
+void calibrateSensors(QTRSensorsRC *frontal, QTRSensorsRC *left, QTRSensorsRC *right) {
+  frontal->calibrate();
+  left->calibrate();
+  right->calibrate();
 }
