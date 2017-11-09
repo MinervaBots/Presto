@@ -56,7 +56,7 @@ void readLeft(){
   }
 }
 
-unsigned int calculateError(unsigned int num_sensors, unsigned int *readings, unsigned int weights) {
+int calculateError(int num_sensors, unsigned int *readings) {
   int error = 0, weight = -num_sensors/2, even = !num_sensors%2;
 
   for(int i = 0; i < num_sensors; i++) {

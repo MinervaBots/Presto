@@ -59,7 +59,14 @@ void loop() {
       leitura = Serial.read();
     }
 
-    angularSpeed = controllerPID(errorPID());
+    frontalSensors.read(Sensors);
+    int error = calculateError(NUM_SENSORS, Sensors);
+    Serial.print("Erro: ");
+    Serial.println(error);
+    delay(500);
+    angularSpeed = controllerPID(error);
+    Serial.print("angularSpeed: ");
+    Serial.println(angularSpeed);
     
     motorController(1,angularSpeed);
 
