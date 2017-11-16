@@ -1,15 +1,14 @@
 
 //valores básicos para constantes do PID
 float KI= 0; //constante de integração
-float KP = 0; //constante de proporcionalidade
+float KP = 10; //constante de proporcionalidade
 float KD = 0; // constante de derivação
-float DT = 0; // derivação do tempo
-
-float MAX_OUTPUT = 5;
-float MIN_OUTPUT = -5;
-float output = 0.0;
+float DT = 2; // derivação do tempo
+float lastRun = 0;
+float MAX_OUTPUT = 10000000;
+float MIN_OUTPUT = -10000000;
 float setPoint = 0;
-float lastErro = 0;
+float lastError = 0;
 float Integral = 0;
 
 
@@ -23,11 +22,10 @@ void setConstantPID (float integrative, float proportional, float derivative,flo
 }
 
 float controllerPID (float error){
-  static unsigned int lastRun = millis();
-  static float lastError = error;
-  
-  // Isso pode causar uma divisão por zero
+    
+ 
   float dError = -(error - lastError)/(millis() - lastRun);  //verificar o sinal
+  
   Integral += KI*DT*error;
   
   float output = KP*error;

@@ -1,15 +1,15 @@
 //falta programar o inicio (parte da calibração
-#include <Button.h>
-
+#include "Button.h"
 #include "pins.h"
 #include "PID.h"
 #include "SensorRead.h"
+#include "MotorFunction.h"
 
 #define STARTUP_DELAY 300
 
 unsigned int sensor_values[8] = {0,0,0,0,0,0,0,0};
 
-Button button(BUTTON_PIN, BUTTON_PULLDOWN);
+Button button(BUTTON_PIN,PULLDOWN);
 
 //não tenho certeza de onde colocar essas variáveis 
 int start = 1;
@@ -52,35 +52,30 @@ void loop() {
   // Ajustar vel. linear em função do erro
   // Função de parada
   // Outras condições de parada
-  if(start){
+  while(start){
     
     //leitura do bluetooth
-    if(Serial.available()> 0){
-      leitura = Serial.read();
-    }
-
+  
+    
     frontalSensors.read(Sensors);
-    int error = calculateError(NUM_SENSORS, Sensors);
+    float error = calculateError(NUM_SENSORS, Sensors);
     Serial.print("Erro: ");
     Serial.println(error);
     delay(500);
-    angularSpeed = controllerPID(error);
+    float angularSpeed = controllerPID(error);
     Serial.print("angularSpeed: ");
     Serial.println(angularSpeed);
     
     motorController(1,angularSpeed);
+   
+   
 
     //função de leitura do máximo da direita
-    if(rightCount == MAXCOUNT){
-      start = 0;
-      stopTime= millis();
-    }
+  
     
     // função de parada pelo bluetooth
-    if(leitura != 49){
-      start = 0;
-      stopTime = millis();
-    }
+    
+    
     
   }
 }

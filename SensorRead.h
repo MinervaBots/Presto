@@ -9,7 +9,8 @@ int LOW_TIME = 100; //tempo minimo para repetir a checagem
 int MAXCOUNT = 10; //mudar variável baseada na pista
 int rightCount= 0;
 int leftCount = 0;
-
+unsigned rightValue = 0;
+unsigned leftValue = 0;
 
 QTRSensorsRC frontalSensors((unsigned char[]) {2,A5,A4,A3,A2,A1,A0,4}, NUM_SENSORS,1000);
 QTRSensorsRC rightSensor((unsigned char[]) {RIGHT_SENSOR_PIN}, 1, 3000);
@@ -33,6 +34,7 @@ float errorPID(){
 }
 
 void readRight(){
+  
   rightSensor.readCalibrated(&rightValue);
 
   if(millis() - lastRead > LOW_TIME){
@@ -45,6 +47,7 @@ void readRight(){
 }
 
 void readLeft(){
+  
   leftSensor.readCalibrated(&leftValue);
 
   if(millis() - lastRead > LOW_TIME){
@@ -56,19 +59,23 @@ void readLeft(){
   }
 }
 
-int calculateError(int num_sensors, unsigned int *readings) {
-  int error = 0, weight = -num_sensors/2, even = !num_sensors%2;
+float calculateError(int num_sensors, unsigned int *readings) {
+  float error = 0, weight = -num_sensors/2, even = !num_sensors%2;
 
   for(int i = 0; i < num_sensors; i++) {
     weight++;
-
+   
+    Serial.print(readings[i]);
+    Serial.print("\t");
+  
     if(even && weight == 0)
       weight++;
-      
-    error += readings[i]*weight;
+    if(readings[i] > 200)
+      error += readings[i]*weight;
+         
   }
 
-  return error;
+  return error/10000;
 }
 
 void calibrateSensors(QTRSensorsRC *frontal, QTRSensorsRC *left, QTRSensorsRC *right) {

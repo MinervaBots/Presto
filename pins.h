@@ -11,6 +11,6 @@
 #define R_MOTOR_2 10
 
 
-//Pin butão/buzzer
+//Pin butï¿½o/buzzer
 #define BUTTON_PIN 5
 #define BUZZER_PIN 12
