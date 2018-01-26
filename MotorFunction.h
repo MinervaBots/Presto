@@ -33,8 +33,8 @@ void motorController(float linear,float angular){
 
   analogWrite(L_MOTOR_1,leftPWM);
   analogWrite(L_MOTOR_2,0);
-  analogWrite(R_MOTOR_1,0);
-  analogWrite(R_MOTOR_2,rightPWM);
+  analogWrite(R_MOTOR_1,rightPWM);
+  analogWrite(R_MOTOR_2,0);
 }
 
 
