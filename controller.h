@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include "settings.h"
 #include "inputs.h"
 #include "outputs.h"
 

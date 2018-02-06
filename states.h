@@ -2,6 +2,7 @@
 #include "inputs.h"
 #include "outputs.h"
 #include "controller.h"
+#include "settings.h"
 
 #ifndef STATES_H
 #define STATES_H
@@ -31,11 +32,11 @@ void run(int track[], int track_size) {
   int stop = 2;
   position = 0;
   // safe constants
-  float kp = 1;
-  float ki = 0;
-  float kd = 0;
+  float kp = KP_SAFE;
+  float ki = KD_SAFE;
+  float kd = KD_SAFE;
   float offset = 0;
-  float speed = 0.5;
+  float speed = SPEED_SAFE;
   while (stop > 0) {      
     if (leftMark()) { // inputs.h
       position++;
@@ -45,21 +46,21 @@ void run(int track[], int track_size) {
     }
     else {
       if (track[position] == 0) { // straight
-        kp = 1;
-        ki = 0;
-        kd = 0;
-        speed = 0.5;
+        kp = KP_STRAIGHT;
+        ki = KI_STRAIGHT;
+        kd = KD_STRAIGHT;
+        speed = SPEED_STRAIGHT;
       }
       else {
-        kp = 1;
-        ki = 0;
-        kd = 0;
-        speed = 0.5;
+        kp = KP_TURN;
+        ki = KI_TURN;
+        kd = KD_TURN;
+        speed = SPEED_TURN;
         if (track[position] == 1) { // right
-          offset = 1;
+          offset = OFFSET_TURN;
         }
         else { // left
-          offset = -1;
+          offset = -OFFSET_TURN;
         }
       }
     }
