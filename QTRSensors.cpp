@@ -278,8 +278,9 @@ void QTRSensors::readCalibrated(unsigned int *sensor_values, unsigned char readM
 
         signed int x = 0;
         if(denominator != 0)
-            x = (((signed long)sensor_values[i]) - calmin)
-                * 1000 / denominator;
+            x = (((signed long)constrain(sensor_values[i], calmin, calmax) - calmin)
+            //x = (((signed long)sensor_values[i]) - calmin)
+                * 1000 / denominator);
         if(x < 0)
             x = 0;
         else if(x > 1000)
@@ -334,7 +335,7 @@ int QTRSensors::readLine(unsigned int *sensor_values,
         }
 
         // only average in values that are above a noise threshold
-        if(value > 50) {
+        if(value > 100) {
             avg += (long)(value) * (i * 1000);
             sum += value;
         }
@@ -429,8 +430,8 @@ void QTRSensorsRC::readPrivate(unsigned int *sensor_values)
     for(i = 0; i < _numSensors; i++)
     {
         sensor_values[i] = _maxValue;
-        digitalWrite(_pins[i], HIGH);   // make sensor line an output
         pinMode(_pins[i], OUTPUT);      // drive sensor line high
+        digitalWrite(_pins[i], HIGH);   // make sensor line an outputc
     }
 
     delayMicroseconds(10);              // charge lines for 10 us
