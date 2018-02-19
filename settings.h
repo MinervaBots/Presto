@@ -17,7 +17,7 @@
 #define RIGT_MARK 11 // verify pin
 
 #define ARRAY_SIZE 3 // changes depending on the array
-const unsigned char array_pins[] = {12, 13, 14}; // verify pins
+const unsigned char array_pins[] = {12, 13, 14}; // changes depending on the array
 
 #define KP_SAFE 1
 #define KI_SAFE 0
