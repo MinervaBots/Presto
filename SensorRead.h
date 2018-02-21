@@ -2,14 +2,15 @@
 #define whiteLine 1
 #define centerPosition 3500
 #define NUM_SENSORS 8
+#define LINE_VALUE 650
 
 unsigned int Sensors[NUM_SENSORS];
 float errorMaximo = 0.0;// atan(Largunra do sensor/2*altura do sensor)
 float lineError;
-float lastRead;
-int LOW_TIME = 100; //tempo minimo para repetir a checagem, era 100
+unsigned long lastReadLeft, lastReadRight;
+int LOW_TIME = 200; //tempo minimo para repetir a checagem, era 100
 int MAXCOUNT = 10; //mudar variável baseada na pista
-int rightCount= 0;
+int rightCount = 0;
 int leftCount = 0;
 unsigned rightValue = 0;
 unsigned leftValue = 0;
@@ -75,12 +76,14 @@ void readRight(){
   
   rightSensor.readCalibrated(&rightValue);
 
-  if(millis() - lastRead > LOW_TIME){
-    if(rightValue > 200){
+  if(millis() - lastReadRight > LOW_TIME){
+    if(rightValue < LINE_VALUE){
       rightCount += 1;
       // É preciso acender o led quando notar algo?
-      lastRead = millis();
-    }  
+      lastReadRight = millis();
+      digitalWrite(LED_PIN, rightCount % 2 == 0 ? HIGH : LOW);
+      Serial.println(rightValue);
+    }
   }
 }
 
@@ -88,11 +91,11 @@ void readLeft(){
   
   leftSensor.readCalibrated(&leftValue);
 
-  if(millis() - lastRead > LOW_TIME){
-    if(leftValue > 200){
+  if(millis() - lastReadLeft > LOW_TIME){
+    if(leftValue > LINE_VALUE){
       leftCount += 1;
       // É preciso acender o led quando notar algo?
-      lastRead = millis();
+      lastReadLeft = millis();
     } 
   }
 }
@@ -116,7 +119,7 @@ float calculateError(int num_sensors, unsigned int *readings) {
   return error/10000;
 }
 
-void calibrateSensors(QTRSensorsRC *frontal, QTRSensorsRC *left, QTRSensorsRC *right) {
+void calibrateSensors(QTRSensorsRC *frontal, QTRSensorsRC *right, QTRSensorsRC *left) {
   frontal->calibrate();
   left->calibrate();
   right->calibrate();

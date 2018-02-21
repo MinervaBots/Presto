@@ -41,8 +41,8 @@ void setup()
     calibrateSensors(&frontalSensors, &rightSensor, &leftSensor);
   }
   digitalWrite(LED_PIN, LOW);
-  delay(DEBOUNCE_TIME);
   Serial.println("Fim da calibração");
+  delay(DEBOUNCE_TIME);
   
   // Aguarda botão para iniciar
   while (!button.isPressed());
@@ -61,9 +61,14 @@ void loop()
   // Outras condições de parada
   while (start)
   {
-
-    //leitura do bluetooth
-
+    readRight();
+    /*
+    if(rightCount > 1)
+    {
+      start = false;
+      break;
+    }
+    */
     float input = (frontalSensors.readLine(Sensors) - centerPosition) / 1000;
     float angularSpeed = -controllerPID(input);
     /*
@@ -88,9 +93,6 @@ void setupPins()
   pinMode(L_MOTOR_1, OUTPUT);
   pinMode(L_MOTOR_2, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
-  
-  //pinMode(RIGHT_SENSOR_PIN,INPUT);
-  //pinMode(LEFT_SENSOR_PIN,INPUT);
 }
 
 

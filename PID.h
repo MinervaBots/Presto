@@ -1,9 +1,9 @@
 
 //valores básicos para constantes do PID
-float KI= 0.0000; //constante de integração
-float KP = 0.5; //constante de proporcionalidade
-float KD = 1; // constante de derivação
-float DT = 0.002; // derivação do tempo em segundos
+float KI = 0.00000; // constante de integração
+float KP = 0.52; // 0.92 constante de proporcionalidade
+float KD = 1200; // 1000 constante de derivação
+float DT = 0.005; // derivação do tempo em segundos
 float lastRun = 0;
 float lastOutput = 0;
 float MAX_OUTPUT = 1;
