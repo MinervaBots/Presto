@@ -2,13 +2,13 @@
 #define whiteLine 1
 #define centerPosition 3500
 #define NUM_SENSORS 8
-#define LINE_VALUE 650
+#define LINE_VALUE 500
 
 unsigned int Sensors[NUM_SENSORS];
 float errorMaximo = 0.0;// atan(Largunra do sensor/2*altura do sensor)
 float lineError;
 unsigned long lastReadLeft, lastReadRight;
-int LOW_TIME = 200; //tempo minimo para repetir a checagem, era 100
+int LOW_TIME = 400; //tempo minimo para repetir a checagem, era 100
 int MAXCOUNT = 10; //mudar variável baseada na pista
 int rightCount = 0;
 int leftCount = 0;
@@ -19,70 +19,29 @@ QTRSensorsRC frontalSensors((unsigned char[]) {2, A5, A4, A3, A2, A1, A0, 4}, NU
 QTRSensorsRC rightSensor((unsigned char[]) {RIGHT_SENSOR_PIN}, 1, 3000);
 QTRSensorsRC leftSensor((unsigned char[]) {LEFT_SENSOR_PIN}, 1, 3000);
 
-float errorPID(){
-  
-  //frontalSensors.readline (array com os pinos, modo de leitura, definição para seguir a linha braca)*
-  lineError = errorMaximo*((frontalSensors.readLine(Sensors, QTR_EMITTERS_ON, whiteLine) - centerPosition)/centerPosition); // Acha o erro e cria uma média nele
-  
-  #ifdef DEBUG
-//  Serial.print("erro: ");
-//  Serial.println(lineError);
-//  for(int i = 1; i<= NUM_SENSORS; i++){
-//    Serial.print(sensor_value[i]);
-//    Serial.print("\t");
-//  }
-//  Serial.println("");
-  #endif
-  return lineError;
-}
-
-float manualError(float error) {
-
-/*    error = (int)
-    ((4*(0 - (read(frontalSensors[0])))) + 
-    (3* (0 - (read(frontalSensors[1])))) + 
-    (2* (0 - (read(frontalSensors[2])))) + 
-    (1* (0 - (read(frontalSensors[3])))) + 
-    (1* (read(frontalSensors[4]))) + 
-    (2* (read(frontalSensors[5]))) + 
-    (3* (read(frontalSensors[6]))) + 
-    (4* (read(frontalSensors[7]))))
-*/   
-    frontalSensors.read(Sensors, QTR_EMITTERS_ON);
-
-//    Serial.println(Sensors [0]);
-//    Serial.println(Sensors [1]);
- //   Serial.println(Sensors [2]);
-//    Serial.println(Sensors [3]);
-//    Serial.println(Sensors [4]);
-//    Serial.println(Sensors [5]);
-//    Serial.println(Sensors [6]);
-//    Serial.println(Sensors [7]);
-    /*
-    error = 
-    ((4*(Sensors[0]))) + 
-    (3* (Sensors[1])) + 
-    (2* (Sensors[2])) + 
-    (1* (Sensors[3])) - 
-    (1* (Sensors[4])) - 
-    (2* (Sensors[5])) - 
-    (3* (Sensors[6])) - 
-    (4* (Sensors[7]));
-    return error/10000;
-    */
-}
-
 void readRight(){
   
   rightSensor.readCalibrated(&rightValue);
-
-  if(millis() - lastReadRight > LOW_TIME){
-    if(rightValue < LINE_VALUE){
+  if(millis() - lastReadRight > LOW_TIME)
+  {
+    if(rightValue < LINE_VALUE)
+    {
       rightCount += 1;
+      bool state = rightCount % 2 == 0 ? HIGH : LOW;
+      
+      if(state)
+      {
+ //       tone(BUZZER_PIN, 440, 50);
+        digitalWrite(LED_PIN, HIGH);  
+      }
+      else
+      {
+   //     noTone(BUZZER_PIN);
+        digitalWrite(LED_PIN, LOW);    
+      }
       // É preciso acender o led quando notar algo?
       lastReadRight = millis();
-      digitalWrite(LED_PIN, rightCount % 2 == 0 ? HIGH : LOW);
-      Serial.println(rightValue);
+      //Serial.println(rightValue);
     }
   }
 }
@@ -92,31 +51,12 @@ void readLeft(){
   leftSensor.readCalibrated(&leftValue);
 
   if(millis() - lastReadLeft > LOW_TIME){
-    if(leftValue > LINE_VALUE){
+    if(leftValue < LINE_VALUE){
       leftCount += 1;
       // É preciso acender o led quando notar algo?
       lastReadLeft = millis();
     } 
   }
-}
-
-float calculateError(int num_sensors, unsigned int *readings) {
-  float error = 0, weight = -num_sensors/2, even = !num_sensors%2;
-
-  for(int i = 0; i < num_sensors; i++) {
-    weight++;
-   
-    Serial.print(readings[i]);
-    Serial.print("\t");
-  
-    if(even && weight == 0)
-      weight++;
-    if(readings[i] > 200)
-      error += readings[i]*weight;
-         
-  }
-
-  return error/10000;
 }
 
 void calibrateSensors(QTRSensorsRC *frontal, QTRSensorsRC *right, QTRSensorsRC *left) {

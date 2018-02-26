@@ -25,7 +25,7 @@ void setup()
 {
   Serial.begin(9600);
   setupPins();
-  
+
   // Calibrar sensores
   while (!button.isPressed()); // Aguarda o botão ser pressionado para iniciar calibração
 
@@ -62,14 +62,26 @@ void loop()
   while (start)
   {
     readRight();
-    /*
-    if(rightCount > 1)
+    if(rightCount >= 4)
     {
       start = false;
+      motorController(0);
+      delay(50);
       break;
     }
+    
+    int line = frontalSensors.readLine(Sensors);
+    /*
+    if(line < 0)
+    {
+      
+    }
+    else if(line > 7000)
+    {
+      
+    }
     */
-    float input = (frontalSensors.readLine(Sensors) - centerPosition) / 1000;
+    float input = (line - centerPosition) / 1000;
     float angularSpeed = -controllerPID(input);
     /*
     Serial.print("Input: ");
@@ -82,6 +94,7 @@ void loop()
 
     // função de parada pelo bluetooth
   }
+  stop();
 }
 
 void setupPins()
