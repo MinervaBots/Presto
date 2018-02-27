@@ -1,3 +1,6 @@
+#ifndef PINS_H
+#define PINS_H
+
 #define LEFT_SENSOR_PIN  6
 #define RIGHT_SENSOR_PIN 7
 #define LED_PIN 13
@@ -13,3 +16,6 @@
 //Pin but�o/buzzer
 #define BUTTON_PIN 5
 #define BUZZER_PIN 12
+
+
+#endif // PINS_H

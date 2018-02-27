@@ -31,7 +31,7 @@
 
 class Button{
   public:
-    Button(uint8_t buttonPin, uint8_t buttonMode=PULLDOWN);
+    Button(uint8_t buttonPin, uint8_t buttonMode = PULLDOWN);
     void pullup();
     void pulldown();
     bool isPressed();
