@@ -26,6 +26,7 @@ enum State
   Calibrating,
   Calibrated,
   Running,
+  ExperimentalTuning
 };
 
 State currentState;
@@ -50,6 +51,7 @@ enum Commands
   Stop = 10,
   SaveConfigs = 11,
   LoadConfigs = 12,
+  StartTuning = 13
 };
 
 void onUnknownCommand(CmdMessenger *messenger);
@@ -64,6 +66,8 @@ void onStartCommand(CmdMessenger *messenger);
 void onStopCommand(CmdMessenger *messenger);
 void onSaveConfigsCommand(CmdMessenger *messenger);
 void onLoadConfigsCommand(CmdMessenger *messenger);
+void onStartTuningCommand(CmdMessenger *messenger);
+
 
 void setup()
 {
@@ -98,10 +102,12 @@ void setup()
   cmdMessenger.attach(Commands::Stop, onStopCommand);
   cmdMessenger.attach(Commands::SaveConfigs, onSaveConfigsCommand);
   cmdMessenger.attach(Commands::LoadConfigs, onLoadConfigsCommand);
+  cmdMessenger.attach(Commands::StartTuning, onStartTuningCommand);
 }
 
 void loop()
 {
+  float input, angularSpeed;
   cmdMessenger.feedinSerialData();
   //cmdMessenger.sendCmd(Commands::Acknowledge, "ola");
   switch (currentState)
@@ -153,8 +159,8 @@ void loop()
         break;
       }
 
-      float input = readArray();
-      float angularSpeed = -pid.compute(input);
+      input = readArray();
+      angularSpeed = -pid.compute(input);
 
       /*
         Serial.print("Input: ");
@@ -164,6 +170,10 @@ void loop()
       */
 
       move(angularSpeed, maxPwm);
+      break;
+      
+   case State::ExperimentalTuning:
+      // Tentar auto tune de PID?
       break;
   }
 }
@@ -283,12 +293,21 @@ void onStopCommand(CmdMessenger *messenger)
 void onSaveConfigsCommand(CmdMessenger *messenger)
 {
   EEPROM.put(0 * sizeof(float), pid.getKP());
-  EEPROM.put(1 * sizeof(float), pid.getKD());
   EEPROM.put(2 * sizeof(float), pid.getKI());
+  EEPROM.put(1 * sizeof(float), pid.getKD());
   EEPROM.put(3 * sizeof(float), maxPwm);
   EEPROM.put(3 * sizeof(float) + 1 * sizeof(int), timeToStop);
   EEPROM.put(3 * sizeof(float) + 2 * sizeof(int), rightMarksToStop);
-  messenger->sendCmd(Commands::Acknowledge, "Configurações salvas");
+  
+  messenger->sendCmdStart(Commands::Acknowledge);
+  messenger->sendCmdArg("Configurações salvas - KP, KI, KD, PWM, TTS, MTS");
+  messenger->sendCmdArg(pid.getKP());
+  messenger->sendCmdArg(pid.getKI());
+  messenger->sendCmdArg(pid.getKD());
+  messenger->sendCmdArg(maxPwm);
+  messenger->sendCmdArg(timeToStop);
+  messenger->sendCmdArg(rightMarksToStop);
+  messenger->sendCmdEnd();
 }
 
 void onLoadConfigsCommand(CmdMessenger *messenger)
@@ -304,5 +323,19 @@ void onLoadConfigsCommand(CmdMessenger *messenger)
   EEPROM.get(3 * sizeof(float) + 2 * sizeof(int), rightMarksToStop);
 
   pid.setTunings(kp, ki, kd);
-  messenger->sendCmd(Commands::Acknowledge, "Configurações carregadas");
+  messenger->sendCmdStart(Commands::Acknowledge);
+  messenger->sendCmdArg("Configurações carregadas - KP, KI, KD, PWM, TTS, MTS");
+  messenger->sendCmdArg(kp);
+  messenger->sendCmdArg(ki);
+  messenger->sendCmdArg(kd);
+  messenger->sendCmdArg(maxPwm);
+  messenger->sendCmdArg(timeToStop);
+  messenger->sendCmdArg(rightMarksToStop);
+  messenger->sendCmdEnd();
 }
+
+void onStartTuningCommand(CmdMessenger *messenger)
+{
+  currentState = State::ExperimentalTuning;
+}
+
