@@ -293,8 +293,8 @@ void onStopCommand(CmdMessenger *messenger)
 void onSaveConfigsCommand(CmdMessenger *messenger)
 {
   EEPROM.put(0 * sizeof(float), pid.getKP());
-  EEPROM.put(2 * sizeof(float), pid.getKI());
-  EEPROM.put(1 * sizeof(float), pid.getKD());
+  EEPROM.put(1 * sizeof(float), pid.getKI());
+  EEPROM.put(2 * sizeof(float), pid.getKD());
   EEPROM.put(3 * sizeof(float), maxPwm);
   EEPROM.put(3 * sizeof(float) + 1 * sizeof(int), timeToStop);
   EEPROM.put(3 * sizeof(float) + 2 * sizeof(int), rightMarksToStop);
