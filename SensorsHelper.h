@@ -5,7 +5,7 @@ void calibrateSensors();
 
 float readArray();
 
-bool readRight(unsigned long maxCount);
+bool readRight();
 void resetRightCount();
 
 bool readLeft();

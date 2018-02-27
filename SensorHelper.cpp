@@ -31,7 +31,7 @@ float readArray()
   return (line - ARRAY_CENTER_POSITION) / 1000;
 }
 
-bool readRight(unsigned long maxCount)
+bool readRight()
 {
   unsigned int rightValue;
   rightSensor.readCalibrated(&rightValue);
@@ -40,12 +40,13 @@ bool readRight(unsigned long maxCount)
   {
     if (rightValue < LINE_VALUE)
     {
-      rightCount++;
-      digitalWrite(LED_PIN, rightCount % 2 == 0 ? HIGH : LOW);
+      //rightCount++;
       lastReadRight = millis();
+      return true;
     }
   }
-  return rightCount >= maxCount;
+  return false;
+  //return rightCount >= maxCount;
 }
 
 void resetRightCount()
@@ -53,17 +54,20 @@ void resetRightCount()
   rightCount = 0;
 }
 
+int leftCount = 0;
 bool readLeft()
 {
   unsigned int leftValue;
   leftSensor.readCalibrated(&leftValue);
-
   if (millis() - lastReadLeft > LEFT_SENSOR_LOW_TIME)
   {
     if (leftValue < LINE_VALUE)
     {
-      return true;
+      //Serial.println(leftValue);
+      //leftCount++;
+      //digitalWrite(LED_PIN, leftCount % 2 == 0 ? HIGH : LOW);
       lastReadLeft = millis();
+      return true;
     }
   }
   return false;

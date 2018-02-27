@@ -15,6 +15,8 @@ unsigned long rightMarksToStop = 4;
 unsigned long timeToStop = 20000; // 20s
 
 const unsigned long pidSampleTime = 5;
+bool inCurve = false;
+int rightMarksCount = 0;
 
 PID pid;
 Button button(BUTTON_PIN, PULLDOWN);
@@ -86,7 +88,8 @@ void setup()
   pid.setSetPoint(0);
   pid.setSampleTime(pidSampleTime);
   pid.setOutputLimits(-1, 1);
-  pid.setTunings(kp, ki, kd);
+  //pid.setTunings(kp, ki, kd);
+  onLoadConfigsCommand(&cmdMessenger);
 
   currentState = State::Idle;
 
@@ -137,14 +140,31 @@ void loop()
       if (button.isPressed())
       {
         currentState = State::Running;
-        Serial.println("Fim da calibração");
         digitalWrite(LED_PIN, HIGH);
         delay(STARTUP_DELAY);
       }
       break;
 
     case State::Running:
-      if (button.isPressed() || readRight(rightMarksToStop) || (millis() - startTime) > timeToStop)
+      bool rightMark = readRight();
+      bool leftMark = readLeft();
+      
+      if(rightMark && leftMark)
+      {
+        // Interseção. Não faz nada
+      }
+      else if(rightMark && !leftMark)
+      {
+        // Incrementa as marcas de parada
+        rightMarksCount++;
+      }
+      else if(!rightMark && leftMark)
+      {
+        // Verifica a curva
+        inCurve = !inCurve;
+      }
+      
+      if (button.isPressed() || rightMarksCount >= rightMarksToStop || (millis() - startTime) > timeToStop)
       {
         currentState = State::Idle;
         // Tira qualquer velocidade angular para que ele pare reto
@@ -155,10 +175,22 @@ void loop()
         stopTime = millis();
         Serial.print("Tempo total: ");
         Serial.println(stopTime - startTime);
-        resetRightCount();
+        //resetRightCount();
+        rightMarksCount = 0;
         break;
       }
 
+      if(inCurve)
+      {
+        digitalWrite(LED_PIN, HIGH);
+        pid.setTunings(kp * 2, ki, kd);
+      }
+      else
+      {
+        digitalWrite(LED_PIN, LOW);
+        pid.setTunings(kp, ki, kd);
+      }
+      
       input = readArray();
       angularSpeed = -pid.compute(input);
 
@@ -170,10 +202,6 @@ void loop()
       */
 
       move(angularSpeed, maxPwm);
-      break;
-      
-   case State::ExperimentalTuning:
-      // Tentar auto tune de PID?
       break;
   }
 }
@@ -195,27 +223,27 @@ void onUnknownCommand(CmdMessenger *messenger)
 
 void onSetKpCommand(CmdMessenger *messenger)
 {
-  float kp = messenger->readFloatArg();
-  float ki = pid.getKI();
-  float kd = pid.getKD();
+  kp = messenger->readFloatArg();
+  ki = pid.getKI();
+  kd = pid.getKD();
   pid.setTunings(kp, ki, kd);
   messenger->sendCmd(Commands::Acknowledge, "kP alterado");
 }
 
 void onSetKiCommand(CmdMessenger *messenger)
 {
-  float kp = pid.getKP();
-  float ki = messenger->readFloatArg();
-  float kd = pid.getKD();
+  kp = pid.getKP();
+  ki = messenger->readFloatArg();
+  kd = pid.getKD();
   pid.setTunings(kp, ki, kd);
   messenger->sendCmd(Commands::Acknowledge, "kI alterado");
 }
 
 void onSetKdCommand(CmdMessenger *messenger)
 {
-  float kp = pid.getKP();
-  float ki = pid.getKI();
-  float kd = messenger->readFloatArg();
+  kp = pid.getKP();
+  ki = pid.getKI();
+  kd = messenger->readFloatArg();
   pid.setTunings(kp, ki, kd);
   messenger->sendCmd(Commands::Acknowledge, "kD alterado");
 }
@@ -287,6 +315,7 @@ void onStartCommand(CmdMessenger *messenger)
 void onStopCommand(CmdMessenger *messenger)
 {
   currentState = State::Idle;
+  stop();
   messenger->sendCmd(Commands::Acknowledge, "Finalizado");
 }
 
