@@ -133,15 +133,9 @@ void loop()
       break;
 
     case State::Running:
-      bool leftMark = readLeft();
-      bool rightMark = readRight();
+      bool leftMark;
+      bool rightMark;
 
-      if(rightMark)
-      {
-        rightMarksCount++;
-        digitalWrite(LED_PIN, rightMarksCount % 2 == 0);
-      }
-      /*
       readLaterals(&leftMark, &rightMark);
       if (rightMark && leftMark)
       {
@@ -156,8 +150,18 @@ void loop()
       {
         // Verifica a curva
         inCurve = !inCurve;
+        if (inCurve)
+        {
+          digitalWrite(LED_PIN, HIGH);
+          pid.setTunings(kp * 1.5, ki, kd);
+        }
+        else
+        {
+          digitalWrite(LED_PIN, LOW);
+          pid.setTunings(kp, ki, kd);
+        }
       }
-      */
+
       if (button.isPressed() || rightMarksCount >= rightMarksToStop || (millis() - startTime) > timeToStop)
       {
         currentState = State::Idle;
@@ -177,18 +181,7 @@ void loop()
         rightMarksCount = 0;
         break;
       }
-      /*
-      if (inCurve)
-      {
-        digitalWrite(LED_PIN, HIGH);
-        pid.setTunings(kp * 1.5, ki, kd);
-      }
-      else
-      {
-        digitalWrite(LED_PIN, LOW);
-        pid.setTunings(kp, ki, kd);
-      }
-      */
+      
       input = readArray();
       angularSpeed = -pid.compute(input);
 
@@ -319,7 +312,7 @@ void sendCurrentConfigs(CmdMessenger *messenger)
   messenger->sendCmdArg(kd);
   messenger->sendCmdArg(maxPwm);
   messenger->sendCmdArg(timeToStop);
-  messenger->sendCmdArg(rightMarksToStop);  
+  messenger->sendCmdArg(rightMarksToStop);
 }
 
 void onSaveConfigsCommand(CmdMessenger *messenger)

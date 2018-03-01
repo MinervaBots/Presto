@@ -51,7 +51,6 @@ void move(float angular, unsigned char maxPwm)
 
 void spin(float angular, unsigned char maxPwm)
 {
-  
   fullMove(0, angular, maxPwm);
 }
 
