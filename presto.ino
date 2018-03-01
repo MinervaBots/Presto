@@ -106,6 +106,7 @@ void loop()
       {
         currentState = State::Calibrating;
         digitalWrite(LED_PIN, HIGH);
+        resetCalibration();
         cmdMessenger.sendCmd(Commands::Acknowledge, "Iniciando calibração");
         delay(DEBOUNCE_TIME);
       }
@@ -255,15 +256,16 @@ void onCalibrateCommand(CmdMessenger *messenger)
 {
   if (currentState == State::Idle)
   {
+    resetCalibration();
     cmdMessenger.sendCmd(Commands::Acknowledge, "Iniciando calibração");
     unsigned long calStart = millis();
-    while (millis() - calStart < 3000)
+    while (millis() - calStart < 1000)
     {
       calibrateSensors();
       spin(-1, maxPwm / 2);
     }
     calStart = millis();
-    while (millis() - calStart < 3000)
+    while (millis() - calStart < 1000)
     {
       calibrateSensors();
       spin(1, maxPwm / 2);
