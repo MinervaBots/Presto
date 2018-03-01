@@ -23,7 +23,7 @@ void PID::setTunings(float kP, float kI, float kD)
   // Multiplica e divide os valores aqui pra evitar ter
   // que fazer essas operações sempre que rodar o PID
   _kI = kI * sampleTimeInSec;
-  _kD = kD / sampleTimeInSec;
+  _kD = kD / _sampleTime;
 }
 
 void PID::setSampleTime(unsigned long newSampleTime)

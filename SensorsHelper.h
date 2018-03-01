@@ -4,10 +4,9 @@
 void calibrateSensors();
 
 float readArray();
+//void readLaterals(bool *left, bool* right);
 
 bool readRight();
-void resetRightCount();
-
 bool readLeft();
 
 #endif // SENSORS_HELPER_H

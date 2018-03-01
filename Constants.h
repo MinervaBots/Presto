@@ -5,6 +5,7 @@
 
 #define NUM_SENSORS 8
 #define ARRAY_CENTER_POSITION (((NUM_SENSORS - 1) / 2) * 1000)
+#define LATERALS_CENTER_POSITION (((2 - 1) / 2) * 1000)
 #define USE_WHITE_LINE 1
 #define LINE_VALUE 500
 

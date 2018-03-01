@@ -20,7 +20,7 @@ int rightMarksCount = 0;
 
 PID pid;
 Button button(BUTTON_PIN, PULLDOWN);
-CmdMessenger cmdMessenger = CmdMessenger(Serial);
+CmdMessenger cmdMessenger = CmdMessenger(Serial, ',', '\n', '/');
 
 enum State
 {
@@ -28,7 +28,6 @@ enum State
   Calibrating,
   Calibrated,
   Running,
-  ExperimentalTuning
 };
 
 State currentState;
@@ -53,7 +52,6 @@ enum Commands
   Stop = 10,
   SaveConfigs = 11,
   LoadConfigs = 12,
-  StartTuning = 13
 };
 
 void onUnknownCommand(CmdMessenger *messenger);
@@ -68,20 +66,9 @@ void onStartCommand(CmdMessenger *messenger);
 void onStopCommand(CmdMessenger *messenger);
 void onSaveConfigsCommand(CmdMessenger *messenger);
 void onLoadConfigsCommand(CmdMessenger *messenger);
-void onStartTuningCommand(CmdMessenger *messenger);
-
 
 void setup()
 {
-  /*
-    // Muda o pre-scale do clock do ADC
-    // Em teoria descomentar isso faria a leitura
-    // dos sensores laterais ser 8x mais rápida
-    sbi(ADCSRA, ADPS2);
-    cbi(ADCSRA, ADPS1);
-    cbi(ADCSRA, ADPS0);
-  */
-
   Serial.begin(BAUD_RATE);
   setupPins();
 
@@ -105,14 +92,13 @@ void setup()
   cmdMessenger.attach(Commands::Stop, onStopCommand);
   cmdMessenger.attach(Commands::SaveConfigs, onSaveConfigsCommand);
   cmdMessenger.attach(Commands::LoadConfigs, onLoadConfigsCommand);
-  cmdMessenger.attach(Commands::StartTuning, onStartTuningCommand);
 }
 
 void loop()
 {
   float input, angularSpeed;
   cmdMessenger.feedinSerialData();
-  //cmdMessenger.sendCmd(Commands::Acknowledge, "ola");
+
   switch (currentState)
   {
     case State::Idle:
@@ -120,7 +106,7 @@ void loop()
       {
         currentState = State::Calibrating;
         digitalWrite(LED_PIN, HIGH);
-        Serial.println("Iniciando calibração");
+        cmdMessenger.sendCmd(Commands::Acknowledge, "Iniciando calibração");
         delay(DEBOUNCE_TIME);
       }
       break;
@@ -130,7 +116,7 @@ void loop()
       if (button.isPressed())
       {
         currentState = State::Calibrated;
-        Serial.println("Fim da calibração");
+        cmdMessenger.sendCmd(Commands::Acknowledge, "Fim da calibração");
         digitalWrite(LED_PIN, LOW);
         delay(DEBOUNCE_TIME);
       }
@@ -142,28 +128,36 @@ void loop()
         currentState = State::Running;
         digitalWrite(LED_PIN, HIGH);
         delay(STARTUP_DELAY);
+        startTime = millis();
       }
       break;
 
     case State::Running:
-      bool rightMark = readRight();
       bool leftMark = readLeft();
-      
-      if(rightMark && leftMark)
+      bool rightMark = readRight();
+
+      if(rightMark)
+      {
+        rightMarksCount++;
+        digitalWrite(LED_PIN, rightMarksCount % 2 == 0);
+      }
+      /*
+      readLaterals(&leftMark, &rightMark);
+      if (rightMark && leftMark)
       {
         // Interseção. Não faz nada
       }
-      else if(rightMark && !leftMark)
+      else if (rightMark && !leftMark)
       {
         // Incrementa as marcas de parada
         rightMarksCount++;
       }
-      else if(!rightMark && leftMark)
+      else if (!rightMark && leftMark)
       {
         // Verifica a curva
         inCurve = !inCurve;
       }
-      
+      */
       if (button.isPressed() || rightMarksCount >= rightMarksToStop || (millis() - startTime) > timeToStop)
       {
         currentState = State::Idle;
@@ -172,34 +166,31 @@ void loop()
         delay(50);
         stop();
 
-        stopTime = millis();
-        Serial.print("Tempo total: ");
-        Serial.println(stopTime - startTime);
-        //resetRightCount();
+        unsigned long totalTime = millis() - startTime;
+
+        cmdMessenger.sendCmdStart(Commands::Acknowledge);
+        cmdMessenger.sendCmdArg("Fim de percurso - TT, MD");
+        cmdMessenger.sendCmdArg(totalTime);
+        cmdMessenger.sendCmdArg(rightMarksCount);
+        cmdMessenger.sendCmdEnd();
+
         rightMarksCount = 0;
         break;
       }
-
-      if(inCurve)
+      /*
+      if (inCurve)
       {
         digitalWrite(LED_PIN, HIGH);
-        pid.setTunings(kp * 2, ki, kd);
+        pid.setTunings(kp * 1.5, ki, kd);
       }
       else
       {
         digitalWrite(LED_PIN, LOW);
         pid.setTunings(kp, ki, kd);
       }
-      
+      */
       input = readArray();
       angularSpeed = -pid.compute(input);
-
-      /*
-        Serial.print("Input: ");
-        Serial.println(input);
-        Serial.print("PID: ");
-        Serial.println(angularSpeed);
-      */
 
       move(angularSpeed, maxPwm);
       break;
@@ -271,17 +262,18 @@ void onCalibrateCommand(CmdMessenger *messenger)
 {
   if (currentState == State::Idle)
   {
+    cmdMessenger.sendCmd(Commands::Acknowledge, "Iniciando calibração");
     unsigned long calStart = millis();
     while (millis() - calStart < 3000)
     {
       calibrateSensors();
-      spin(-1, maxPwm / 2.5);
+      spin(-1, maxPwm / 2);
     }
     calStart = millis();
     while (millis() - calStart < 3000)
     {
       calibrateSensors();
-      spin(1, maxPwm / 2.5);
+      spin(1, maxPwm / 2);
     }
 
     stop();
@@ -293,15 +285,16 @@ void onCalibrateCommand(CmdMessenger *messenger)
       angularSpeed = -pid.compute(readArray());
       move(angularSpeed, maxPwm / 2);
     }
-    
+
     calStart = millis();
-    while (millis() - calStart < 1000)
+    while (millis() - calStart < 500)
     {
       angularSpeed = -pid.compute(readArray());
       move(angularSpeed, maxPwm / 2);
     }
     stop();
     currentState = State::Calibrated;
+    cmdMessenger.sendCmd(Commands::Acknowledge, "Fim da calibração");
   }
 }
 
@@ -319,31 +312,33 @@ void onStopCommand(CmdMessenger *messenger)
   messenger->sendCmd(Commands::Acknowledge, "Finalizado");
 }
 
+void sendCurrentConfigs(CmdMessenger *messenger)
+{
+  messenger->sendCmdArg(kp);
+  messenger->sendCmdArg(ki);
+  messenger->sendCmdArg(kd);
+  messenger->sendCmdArg(maxPwm);
+  messenger->sendCmdArg(timeToStop);
+  messenger->sendCmdArg(rightMarksToStop);  
+}
+
 void onSaveConfigsCommand(CmdMessenger *messenger)
 {
-  EEPROM.put(0 * sizeof(float), pid.getKP());
-  EEPROM.put(1 * sizeof(float), pid.getKI());
-  EEPROM.put(2 * sizeof(float), pid.getKD());
+  EEPROM.put(0 * sizeof(float), kp);
+  EEPROM.put(1 * sizeof(float), ki);
+  EEPROM.put(2 * sizeof(float), kd);
   EEPROM.put(3 * sizeof(float), maxPwm);
   EEPROM.put(3 * sizeof(float) + 1 * sizeof(int), timeToStop);
   EEPROM.put(3 * sizeof(float) + 2 * sizeof(int), rightMarksToStop);
-  
+
   messenger->sendCmdStart(Commands::Acknowledge);
   messenger->sendCmdArg("Configurações salvas - KP, KI, KD, PWM, TTS, MTS");
-  messenger->sendCmdArg(pid.getKP());
-  messenger->sendCmdArg(pid.getKI());
-  messenger->sendCmdArg(pid.getKD());
-  messenger->sendCmdArg(maxPwm);
-  messenger->sendCmdArg(timeToStop);
-  messenger->sendCmdArg(rightMarksToStop);
+  sendCurrentConfigs(messenger);
   messenger->sendCmdEnd();
 }
 
 void onLoadConfigsCommand(CmdMessenger *messenger)
 {
-  float kp;
-  float ki;
-  float kd;
   EEPROM.get(0 * sizeof(float), kp);
   EEPROM.get(1 * sizeof(float), ki);
   EEPROM.get(2 * sizeof(float), kd);
@@ -354,17 +349,6 @@ void onLoadConfigsCommand(CmdMessenger *messenger)
   pid.setTunings(kp, ki, kd);
   messenger->sendCmdStart(Commands::Acknowledge);
   messenger->sendCmdArg("Configurações carregadas - KP, KI, KD, PWM, TTS, MTS");
-  messenger->sendCmdArg(kp);
-  messenger->sendCmdArg(ki);
-  messenger->sendCmdArg(kd);
-  messenger->sendCmdArg(maxPwm);
-  messenger->sendCmdArg(timeToStop);
-  messenger->sendCmdArg(rightMarksToStop);
+  sendCurrentConfigs(messenger);
   messenger->sendCmdEnd();
 }
-
-void onStartTuningCommand(CmdMessenger *messenger)
-{
-  currentState = State::ExperimentalTuning;
-}
-
