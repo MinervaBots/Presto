@@ -17,25 +17,15 @@ void PID::setOutputLimits(float minOutput, float maxOutput)
 
 void PID::setTunings(float kP, float kI, float kD)
 {
-  float sampleTimeInSec = _sampleTime / 1000.0;
   _kP = kP;
-
-  // Multiplica e divide os valores aqui pra evitar ter
-  // que fazer essas operações sempre que rodar o PID
-  _kI = kI * sampleTimeInSec;
-  _kD = kD / _sampleTime;
+  _kI = kI;
+  _kD = kD;
 }
 
 void PID::setSampleTime(unsigned long newSampleTime)
 {
   if (newSampleTime > 0)
   {
-    if (_sampleTime != 0)
-    {
-      float ratio = (float)newSampleTime / (float)_sampleTime;
-      _kI *= ratio;
-      _kD /= ratio;
-    }
     _sampleTime = newSampleTime;
   }
 }
@@ -69,7 +59,7 @@ float PID::compute(float input)
   //
   // Com a otimização de ter a variação do tempo multiplicado a constante de integração,
   // temos que a integral resulta no erro multiplicado apenas pela constante de integração:
-  _integrativeSum += error * _kI * timeChange;
+  _integrativeSum += error * _kI * _sampleTime;
   // Limita a integração para evitar que ele continue integrando além do permitido pelo sistema
   // Ex: PWM (0 ~ 255)
   _integrativeSum = constrain(_integrativeSum, _minOutput, _maxOutput);
@@ -89,7 +79,7 @@ float PID::compute(float input)
   // Como a constante de derivação já aplica a variação do tempo, multiplicamos ela pela diferença
   // da entrada atual com a ultima entrada, e então a derivada do erro é simplesmente igual a
   // menos a derivada do sinal de entrada:
-  float dInput = _kD * (input - _lastInput);
+  float dInput = (_kD * (input - _lastInput)) / _sampleTime;
   float dError = -dInput;
 
   // Calcula a saída do PID e salva numa váriavel

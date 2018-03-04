@@ -7,18 +7,17 @@
 #include "CmdMessenger.h"
 #include <EEPROM.h>
 
-float kp = 0.35;
-float ki = 0;
-float kd = 15000;
-int maxPwm = 100;
-unsigned long rightMarksToStop = 4;
-unsigned long timeToStop = 20000; // 20s
-
-const unsigned long pidSampleTime = 5;
-bool inCurve = false;
-int rightMarksCount = 0;
+struct Configs
+{
+  float kP, kI, kD;
+  unsigned int maxPwm;
+  unsigned long timeToStop;
+  unsigned long rightLowTime;
+  bool halfMotorControl;
+};
 
 PID pid;
+Configs configs;
 Button button(BUTTON_PIN, PULLDOWN);
 CmdMessenger cmdMessenger = CmdMessenger(Serial, ',', '\n', '/');
 
@@ -30,6 +29,7 @@ enum State
   Running,
 };
 
+bool onLine;
 State currentState;
 unsigned long startTime, stopTime;
 
@@ -46,12 +46,13 @@ enum Commands
   SetKD = 4,
   SetMaxPWM = 5,
   SetMaxTime = 6,
-  SetMaxRightMarks = 7,
+  SetRightLowTime = 7,
   Calibrate = 8,
   Start = 9,
   Stop = 10,
   SaveConfigs = 11,
   LoadConfigs = 12,
+  SwitchControlMode = 13,
 };
 
 void onUnknownCommand(CmdMessenger *messenger);
@@ -60,12 +61,13 @@ void onSetKiCommand(CmdMessenger *messenger);
 void onSetKdCommand(CmdMessenger *messenger);
 void onSetMaxPWMCommand(CmdMessenger *messenger);
 void onSetMaxTimeCommand(CmdMessenger *messenger);
-void onSetMaxRightMarksCommand(CmdMessenger *messenger);
+void onSetRightLowTime(CmdMessenger *messenger);
 void onCalibrateCommand(CmdMessenger *messenger);
 void onStartCommand(CmdMessenger *messenger);
 void onStopCommand(CmdMessenger *messenger);
 void onSaveConfigsCommand(CmdMessenger *messenger);
 void onLoadConfigsCommand(CmdMessenger *messenger);
+void onSwitchControlModeCommand(CmdMessenger *messenger);
 
 void setup()
 {
@@ -73,9 +75,8 @@ void setup()
   setupPins();
 
   pid.setSetPoint(0);
-  pid.setSampleTime(pidSampleTime);
+  pid.setSampleTime(5);
   pid.setOutputLimits(-1, 1);
-  //pid.setTunings(kp, ki, kd);
   onLoadConfigsCommand(&cmdMessenger);
 
   currentState = State::Idle;
@@ -86,12 +87,13 @@ void setup()
   cmdMessenger.attach(Commands::SetKD, onSetKdCommand);
   cmdMessenger.attach(Commands::SetMaxPWM, onSetMaxPWMCommand);
   cmdMessenger.attach(Commands::SetMaxTime, onSetMaxTimeCommand);
-  cmdMessenger.attach(Commands::SetMaxRightMarks, onSetMaxRightMarksCommand);
+  cmdMessenger.attach(Commands::SetRightLowTime, onSetRightLowTime);
   cmdMessenger.attach(Commands::Calibrate, onCalibrateCommand);
   cmdMessenger.attach(Commands::Start, onStartCommand);
   cmdMessenger.attach(Commands::Stop, onStopCommand);
   cmdMessenger.attach(Commands::SaveConfigs, onSaveConfigsCommand);
   cmdMessenger.attach(Commands::LoadConfigs, onLoadConfigsCommand);
+  cmdMessenger.attach(Commands::SwitchControlMode, onSwitchControlModeCommand);
 }
 
 void loop()
@@ -104,9 +106,10 @@ void loop()
     case State::Idle:
       if (button.isPressed())
       {
+        resetCalibration();
         currentState = State::Calibrating;
         digitalWrite(LED_PIN, HIGH);
-        resetCalibration();
+
         cmdMessenger.sendCmd(Commands::Acknowledge, "Iniciando calibração");
         delay(DEBOUNCE_TIME);
       }
@@ -126,67 +129,38 @@ void loop()
     case State::Calibrated:
       if (button.isPressed())
       {
-        currentState = State::Running;
-        digitalWrite(LED_PIN, HIGH);
-        delay(STARTUP_DELAY);
-        startTime = millis();
+        onStartCommand(&cmdMessenger);
       }
       break;
 
     case State::Running:
-      bool leftMark;
-      bool rightMark;
-
-      readLaterals(&leftMark, &rightMark);
-      if (rightMark && leftMark)
+      if (readRight())
       {
-        // Interseção. Não faz nada
-      }
-      else if (rightMark && !leftMark)
-      {
-        // Incrementa as marcas de parada
-        rightMarksCount++;
-      }
-      else if (!rightMark && leftMark)
-      {
-        // Verifica a curva
-        inCurve = !inCurve;
-        if (inCurve)
+        // Caso o startTime seja 0, ainda não passamos pela primeira marca
+        if (startTime == 0)
         {
-          digitalWrite(LED_PIN, HIGH);
-          pid.setTunings(kp * 1.5, ki, kd);
+          // Então inicia o contador
+          startTime = millis();
         }
-        else
+        // Depois de passar pela primeira marca, só considera a proxima
+        // depois de 'rightLowTime' e finaliza o percurso
+        else if (millis() - startTime > configs.rightLowTime)
         {
-          digitalWrite(LED_PIN, LOW);
-          pid.setTunings(kp, ki, kd);
+          onStopCommand(&cmdMessenger);
+          break;
         }
       }
 
-      if (button.isPressed() || rightMarksCount >= rightMarksToStop || (millis() - startTime) > timeToStop)
+      if (button.isPressed()/* || (startTime != 0 && (millis() - startTime) > timeToStop)*/)
       {
-        currentState = State::Idle;
-        // Tira qualquer velocidade angular para que ele pare reto
-        move(0, maxPwm);
-        delay(50);
-        stop();
-
-        unsigned long totalTime = millis() - startTime;
-
-        cmdMessenger.sendCmdStart(Commands::Acknowledge);
-        cmdMessenger.sendCmdArg("Fim de percurso - TT, MD");
-        cmdMessenger.sendCmdArg(totalTime);
-        cmdMessenger.sendCmdArg(rightMarksCount);
-        cmdMessenger.sendCmdEnd();
-
-        rightMarksCount = 0;
+        onStopCommand(&cmdMessenger);
         break;
       }
-      
-      input = readArray();
+
+      input = readArray(&onLine);
       angularSpeed = -pid.compute(input);
 
-      move(angularSpeed, maxPwm);
+      move(angularSpeed, configs.maxPwm, configs.halfMotorControl);
       break;
   }
 }
@@ -208,49 +182,48 @@ void onUnknownCommand(CmdMessenger *messenger)
 
 void onSetKpCommand(CmdMessenger *messenger)
 {
-  kp = messenger->readFloatArg();
-  ki = pid.getKI();
-  kd = pid.getKD();
-  pid.setTunings(kp, ki, kd);
+  configs.kP = messenger->readFloatArg();
+  configs.kI = pid.getKI();
+  configs.kD = pid.getKD();
+  pid.setTunings(configs.kP, configs.kI, configs.kD);
   messenger->sendCmd(Commands::Acknowledge, "kP alterado");
 }
 
 void onSetKiCommand(CmdMessenger *messenger)
 {
-  kp = pid.getKP();
-  ki = messenger->readFloatArg();
-  kd = pid.getKD();
-  pid.setTunings(kp, ki, kd);
+  configs.kP = pid.getKP();
+  configs.kI = messenger->readFloatArg();
+  configs.kD = pid.getKD();
+  pid.setTunings(configs.kP, configs.kI, configs.kD);
   messenger->sendCmd(Commands::Acknowledge, "kI alterado");
 }
 
 void onSetKdCommand(CmdMessenger *messenger)
 {
-  kp = pid.getKP();
-  ki = pid.getKI();
-  kd = messenger->readFloatArg();
-  pid.setTunings(kp, ki, kd);
+  configs.kP = pid.getKP();
+  configs.kI = pid.getKI();
+  configs.kD = messenger->readFloatArg();
+  pid.setTunings(configs.kP, configs.kI, configs.kD);
   messenger->sendCmd(Commands::Acknowledge, "kD alterado");
 }
 
 void onSetMaxPWMCommand(CmdMessenger *messenger)
 {
-  maxPwm = messenger->readInt32Arg();
+  configs.maxPwm = messenger->readInt32Arg();
   messenger->sendCmd(Commands::Acknowledge, "Max PWM alterado");
 }
 
 void onSetMaxTimeCommand(CmdMessenger *messenger)
 {
-  timeToStop = messenger->readInt32Arg();
+  configs.timeToStop = messenger->readInt32Arg();
   messenger->sendCmd(Commands::Acknowledge, "Tempo de parada alterado");
 }
 
-void onSetMaxRightMarksCommand(CmdMessenger *messenger)
+void onSetRightLowTime(CmdMessenger *messenger)
 {
-  rightMarksToStop = messenger->readInt32Arg();
-  messenger->sendCmd(Commands::Acknowledge, "Numero de marcações alterado");
+  configs.rightLowTime = messenger->readInt32Arg();
+  messenger->sendCmd(Commands::Acknowledge, "Low time alterado");
 }
-
 
 void onCalibrateCommand(CmdMessenger *messenger)
 {
@@ -262,30 +235,30 @@ void onCalibrateCommand(CmdMessenger *messenger)
     while (millis() - calStart < 1000)
     {
       calibrateSensors();
-      spin(-1, maxPwm / 2);
+      spin(-1, configs.maxPwm / 2);
     }
     calStart = millis();
     while (millis() - calStart < 1000)
     {
       calibrateSensors();
-      spin(1, maxPwm / 2);
+      spin(1, configs.maxPwm / 2);
     }
 
     stop();
     delay(300);
 
-    float angularSpeed = -pid.compute(readArray());
+    float angularSpeed = -pid.compute(readArray(&onLine));
     while (abs(angularSpeed) > 0.05)
     {
-      angularSpeed = -pid.compute(readArray());
-      move(angularSpeed, maxPwm / 2);
+      angularSpeed = -pid.compute(readArray(&onLine));
+      move(angularSpeed, configs.maxPwm / 2);
     }
 
     calStart = millis();
     while (millis() - calStart < 500)
     {
-      angularSpeed = -pid.compute(readArray());
-      move(angularSpeed, maxPwm / 2);
+      angularSpeed = -pid.compute(readArray(&onLine));
+      move(angularSpeed, configs.maxPwm / 2);
     }
     stop();
     currentState = State::Calibrated;
@@ -296,54 +269,74 @@ void onCalibrateCommand(CmdMessenger *messenger)
 void onStartCommand(CmdMessenger *messenger)
 {
   currentState = State::Running;
-  startTime = millis();
-  messenger->sendCmd(Commands::Acknowledge, "Iniciado");
+  cmdMessenger.sendCmd(Commands::Acknowledge, "Inicio do percurso");
+  digitalWrite(LED_PIN, HIGH);
+  delay(STARTUP_DELAY);
+  startTime = 0; //millis();
 }
 
 void onStopCommand(CmdMessenger *messenger)
 {
   currentState = State::Idle;
+  // Gambiarra para que ele pare reto sobre a linha
+  move(0, configs.maxPwm);
+  delay(50);
   stop();
-  messenger->sendCmd(Commands::Acknowledge, "Finalizado");
+
+  unsigned long totalTime = millis() - startTime;
+
+  cmdMessenger.sendCmdStart(Commands::Acknowledge);
+  cmdMessenger.sendCmdArg("Fim de percurso - TT");
+  cmdMessenger.sendCmdArg(totalTime);
+  cmdMessenger.sendCmdEnd();
 }
 
 void sendCurrentConfigs(CmdMessenger *messenger)
 {
-  messenger->sendCmdArg(kp);
-  messenger->sendCmdArg(ki);
-  messenger->sendCmdArg(kd);
-  messenger->sendCmdArg(maxPwm);
-  messenger->sendCmdArg(timeToStop);
-  messenger->sendCmdArg(rightMarksToStop);
+  messenger->sendCmdArg(configs.kP);
+  messenger->sendCmdArg(configs.kI);
+  messenger->sendCmdArg(configs.kD);
+  messenger->sendCmdArg(configs.maxPwm);
+  messenger->sendCmdArg(configs.timeToStop);
+  messenger->sendCmdArg(configs.rightLowTime);
+  messenger->sendCmdArg(configs.halfMotorControl);
 }
 
 void onSaveConfigsCommand(CmdMessenger *messenger)
 {
-  EEPROM.put(0 * sizeof(float), kp);
-  EEPROM.put(1 * sizeof(float), ki);
-  EEPROM.put(2 * sizeof(float), kd);
-  EEPROM.put(3 * sizeof(float), maxPwm);
-  EEPROM.put(3 * sizeof(float) + 1 * sizeof(int), timeToStop);
-  EEPROM.put(3 * sizeof(float) + 2 * sizeof(int), rightMarksToStop);
+  EEPROM.put(0, configs);
 
   messenger->sendCmdStart(Commands::Acknowledge);
-  messenger->sendCmdArg("Configurações salvas - KP, KI, KD, PWM, TTS, MTS");
+  messenger->sendCmdArg("Configurações salvas - KP, KI, KD, PWM, TTS, RLT, HCM");
   sendCurrentConfigs(messenger);
   messenger->sendCmdEnd();
 }
 
 void onLoadConfigsCommand(CmdMessenger *messenger)
 {
-  EEPROM.get(0 * sizeof(float), kp);
-  EEPROM.get(1 * sizeof(float), ki);
-  EEPROM.get(2 * sizeof(float), kd);
-  EEPROM.get(3 * sizeof(float), maxPwm);
-  EEPROM.get(3 * sizeof(float) + 1 * sizeof(int), timeToStop);
-  EEPROM.get(3 * sizeof(float) + 2 * sizeof(int), rightMarksToStop);
-
-  pid.setTunings(kp, ki, kd);
+  EEPROM.get(0, configs);
+  pid.setTunings(configs.kP, configs.kI, configs.kD);
   messenger->sendCmdStart(Commands::Acknowledge);
-  messenger->sendCmdArg("Configurações carregadas - KP, KI, KD, PWM, TTS, MTS");
+  messenger->sendCmdArg("Configurações carregadas - KP, KI, KD, PWM, TTS, RLT, HCM");
   sendCurrentConfigs(messenger);
+  messenger->sendCmdEnd();
+}
+
+void onSwitchControlModeCommand(CmdMessenger *messenger)
+{
+  configs.halfMotorControl = messenger->readBoolArg();
+  messenger->sendCmdStart(Commands::Acknowledge);
+  messenger->sendCmdArg("Controle do motor alterado");
+
+  if (configs.halfMotorControl)
+  {
+    pid.setOutputLimits(-0.5, 0.5);
+    messenger->sendCmdArg("Half");
+  }
+  else
+  {
+    pid.setOutputLimits(-1, 1);
+    messenger->sendCmdArg("Full");
+  }
   messenger->sendCmdEnd();
 }
