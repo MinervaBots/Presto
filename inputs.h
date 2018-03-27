@@ -61,3 +61,29 @@ bool differenceInterrupt(int encoderA, int encoderB)
 {
   return (digitalRead(encoderA) == HIGH && digitalRead(encoderB) == LOW)  //Retorna verdadeiro caso A seja HIGH e B seja LOW
 }
+
+void lineRoutine()                                                                                          // Função para saber se está numa curva ou reta
+{
+  if (interruptOccurred == true)                                                                            // Caso ele tenha feito uma leitura do encoder
+  {
+    if((rightEncoderCount - lastRightEncoderCount) == 1 && (leftEncoderCount - lastLeftEncoderCount) == 1)  // Caso ele esteja vendo a mesma quantidade de variação nos dois encoders
+    {
+      if(curve = true)                                                                                      // Caso ele tenha saído de curva
+      {
+        curveTime[listNumber];                                                                              // Adiciona na lista o início da reta(fim da curva)
+        listNumber++;
+      }
+      curve = false;                                                                                        // Seta o início da reta
+    
+    }
+    if not ((rightEncoderCount - lastRightEncoderCount) == 1 && (leftEncoderCount - lastLeftEncoderCount) == 1 && curve == false)  // Se ele não estiver numa curva, e tiver acabado de sair de uma reta
+    {
+      curveTime[listNumber] = millis();                                                                     // Adiciona o tempo de início da curva
+      listNumber++;
+      curve = true;                                                                                         // Seta o início da curva
+    }
+    interruptOccurred = false;
+    lastRightEncoderCount = RightEncoderCount;
+    lastleftEncoderCount = leftEncoderCount;
+  }
+}
