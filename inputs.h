@@ -83,13 +83,13 @@ void lineRoutine()                                                              
     {
       if(curve = true)                                                                                      // Caso ele tenha saído de curva
       {
-        curveTime[listNumber] = rightEncoderCount                                                           // Adiciona na lista o início da reta(fim da curva)
+        curveTime[listNumber] = rightEncoderCount;                                                          // Adiciona na lista o início da reta(fim da curva)
         listNumber++;
       }
       curve = false;                                                                                        // Seta o início da reta
     
     }
-    if not ((rightEncoderCount - lastRightEncoderCount) == 1 && (leftEncoderCount - lastLeftEncoderCount) == 1 && curve == false)  // Se ele não estiver numa curva, e tiver acabado de sair de uma reta
+    if not ((rightEncoderCount - lastRightEncoderCount) == 1 && (leftEncoderCount - lastLeftEncoderCount) == 1 && curve == true)  // Se ele não estiver numa curva, e tiver acabado de sair de uma reta
     {
       curveTime[listNumber] = rightEncoderCount;                                                            // Adiciona o tempo de início da curva
       listNumber++;
