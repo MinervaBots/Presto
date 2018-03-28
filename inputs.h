@@ -9,7 +9,7 @@ volatile unsigned long rightEncoderCount = 0;
 volatile bool leftInterruptOccured = false;
 volatile bool rightInterruptOccured = false;
 
-unsigned long curveTime[CURVES_NUMBER * 2];
+unsigned long curveTime[CURVES_NUMBER * 2];     // Recebe o rightEncoderCount
 unsigned long lastRightInterruptOccured;
 unsigned long lastLeftInterruptOccured;
 bool curve = false; // Começa numa reta
@@ -83,7 +83,7 @@ void lineRoutine()                                                              
     {
       if(curve = true)                                                                                      // Caso ele tenha saído de curva
       {
-        curveTime[listNumber];                                                                              // Adiciona na lista o início da reta(fim da curva)
+        curveTime[listNumber] = rightEncoderCount                                                           // Adiciona na lista o início da reta(fim da curva)
         listNumber++;
       }
       curve = false;                                                                                        // Seta o início da reta
@@ -91,7 +91,7 @@ void lineRoutine()                                                              
     }
     if not ((rightEncoderCount - lastRightEncoderCount) == 1 && (leftEncoderCount - lastLeftEncoderCount) == 1 && curve == false)  // Se ele não estiver numa curva, e tiver acabado de sair de uma reta
     {
-      curveTime[listNumber] = millis();                                                                     // Adiciona o tempo de início da curva
+      curveTime[listNumber] = rightEncoderCount;                                                            // Adiciona o tempo de início da curva
       listNumber++;
       curve = true;                                                                                         // Seta o início da curva
     }
