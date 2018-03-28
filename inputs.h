@@ -12,7 +12,7 @@ volatile bool rightInterruptOccured = false;
 unsigned long curveTime[CURVES_NUMBER];
 unsigned long lastRightInterruptOccured;
 unsigned long lastLeftInterruptOccured;
-bool curve;
+bool curve = false; // Começa numa reta
 int listNumber = 0;
 
 #ifndef INPUTS_H
@@ -69,7 +69,7 @@ void leftEncoderInterrupt()
 }
 //===== Fim das funções de Interrupção
 
-
+//===== Início das funções de uso do Encoder
 bool differenceInterrupt(int encoderA, int encoderB)
 {
   return (digitalRead(encoderA) == HIGH && digitalRead(encoderB) == LOW)  //Retorna verdadeiro caso A seja HIGH e B seja LOW
@@ -77,7 +77,7 @@ bool differenceInterrupt(int encoderA, int encoderB)
 
 void lineRoutine()                                                                                          // Função para saber se está numa curva ou reta
 {
-  if (interruptOccurred == true)                                                                            // Caso ele tenha feito uma leitura do encoder
+  if (leftInterruptOccurred && rightInterruptOccurred == true)                                                                            // Caso ele tenha feito uma leitura do encoder
   {
     if((rightEncoderCount - lastRightEncoderCount) == 1 && (leftEncoderCount - lastLeftEncoderCount) == 1)  // Caso ele esteja vendo a mesma quantidade de variação nos dois encoders
     {
@@ -95,8 +95,10 @@ void lineRoutine()                                                              
       listNumber++;
       curve = true;                                                                                         // Seta o início da curva
     }
-    interruptOccurred = false;
+    leftInterruptOccurred = false;
+    rightInterruptOccurred = false;
     lastRightEncoderCount = RightEncoderCount;
     lastleftEncoderCount = leftEncoderCount;
   }
 }
+//===== Fim das funções de uso do Encoder
