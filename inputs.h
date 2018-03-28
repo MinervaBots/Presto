@@ -3,9 +3,17 @@
 #include <QTRSensors.h> // needed in the libs folder
 #include "settings.h"
 
-// Variáveis voláteis para interrupção (contador)
+// Variáveis voláteis para interrupção 
 volatile unsigned long leftEncoderCount = 0;
 volatile unsigned long rightEncoderCount = 0;
+volatile bool leftInterruptOccured = false;
+volatile bool rightInterruptOccured = false;
+
+unsigned long curveTime[CURVES_NUMBER];
+unsigned long lastRightInterruptOccured;
+unsigned long lastLeftInterruptOccured;
+bool curve;
+int listNumber = 0;
 
 #ifndef INPUTS_H
 #define INPUTS_H
@@ -41,11 +49,13 @@ void debugInterrupt()
   Serial.println(leftEncoderCount);
 }
 
+//===== Início das funções de interrupção
 void rightEncoderInterrupt()
 {
   //Se rightEncoderA e estiver HIGH e rightEncoderB estiver LOW, está indo reto
   
   bool readEncoders = differenceInterrupt(rightEncoderA, rightEncoderB);
+  leftInterruptOccurred = true;
 
   readEncoders ? rightEncoderCount++ : rightEncoder--;
 }
@@ -53,9 +63,12 @@ void rightEncoderInterrupt()
 void leftEncoderInterrupt()
 {
   bool readEncoders = differenceInterrupt(leftEncoderA, leftEncoderB);
+  rightInterruptOccurred = true;
 
   readEncoders ? leftEncoderCount++ : leftEncoder--;
 }
+//===== Fim das funções de Interrupção
+
 
 bool differenceInterrupt(int encoderA, int encoderB)
 {
