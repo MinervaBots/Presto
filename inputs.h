@@ -9,7 +9,7 @@ volatile unsigned long rightEncoderCount = 0;
 volatile bool leftInterruptOccured = false;
 volatile bool rightInterruptOccured = false;
 
-unsigned long curveTime[CURVES_NUMBER];
+unsigned long curveTime[CURVES_NUMBER * 2];
 unsigned long lastRightInterruptOccured;
 unsigned long lastLeftInterruptOccured;
 bool curve = false; // Começa numa reta
