@@ -7,6 +7,7 @@
     will obtain reflectance measurements for those sensors.  Smaller sensor
     values correspond to higher reflectance (e.g. white) while larger
     sensor values correspond to lower reflectance (e.g. black or a void).
+
     * QTRSensorsRC should be used for QTR-1RC and QTR-8RC sensors.
     * QTRSensorsAnalog should be used for QTR-1A and QTR-8A sensors.
 */
@@ -106,7 +107,11 @@ class QTRSensors
     // black, set the optional second argument white_line to true.  In
     // this case, each sensor value will be replaced by (1000-value)
     // before the averaging.
-    int readLine(unsigned int *sensor_values, bool *on_line, unsigned char readMode = QTR_EMITTERS_ON, unsigned char white_line = 1);
+    int readLine(unsigned int *sensor_values, unsigned char readMode = QTR_EMITTERS_ON, unsigned char white_line = 0);
+
+    // A simple loop over the sensors and their midpoints to determine
+    // whether or not a sensor is high, returns the count of high sensors
+    int numSensorsHigh(unsigned int *sensor_values, unsigned char readMode = QTR_EMITTERS_ON, unsigned char white_line = 0);
 
     // Calibrated minumum and maximum values. These start at 1000 and
     // 0, respectively, so that the very first sensor reading will
@@ -140,6 +145,7 @@ class QTRSensors
     unsigned char _numSensors;
     unsigned char _emitterPin;
     unsigned int _maxValue; // the maximum value returned by this function
+    int _lastValue;
 
   private:
 

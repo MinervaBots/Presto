@@ -8,6 +8,7 @@ public:
 
   void setOutputLimits(float minOutput, float maxOutput);
   void setTunings(float kP, float kI, float kD);
+  void setTunings(float *parameters);
   
   void setSampleTime(unsigned long newSampleTime);
   void setSetPoint(float setPoint);

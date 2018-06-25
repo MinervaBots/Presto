@@ -22,6 +22,14 @@ void PID::setTunings(float kP, float kI, float kD)
   _kD = kD;
 }
 
+
+void PID::setTunings(float *parameters)
+{
+  _kP = parameters[0];
+  _kI = parameters[1];
+  _kD = parameters[2];
+}
+  
 void PID::setSampleTime(unsigned long newSampleTime)
 {
   if (newSampleTime > 0)
