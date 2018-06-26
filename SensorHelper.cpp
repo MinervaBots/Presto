@@ -27,9 +27,9 @@ void resetCalibration()
   rightSensor.resetCalibration();
 }
 
-float readArray(bool *on_line)
+float readArray()
 {
-  int line = frontalSensors.readLine(frontalSensorsValues, on_line);
+  int line = frontalSensors.readLine(frontalSensorsValues);
   return (line - ARRAY_CENTER_POSITION) / 1000;
 }
 

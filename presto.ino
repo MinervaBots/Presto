@@ -30,14 +30,27 @@ enum State
   TuningPID,
 };
 
-bool onLine;
 State currentState;
 unsigned long startTime, stopTime;
+
+
+// Vars para o algoritmo Twiddle de auto tune do PID
+// Colocar alguns parâmetros que sabemos que funcionam razoavelmente bem
+// Em ordem: P, I ,D
+float parameters[3] = {0.7, 0, 0};
+float dParameters[3] = {0.1, 0.005, 1};
+float dPSum = (dParameters[0] + dParameters[1] + dParameters[2]);
+// Quando a variação total dos parâmetros for menor do que esse limitante o código para
+float dPThreshold = 0.000001f;
+float error = 0;
+float bestError = 0;
+unsigned long lastDataSentTime = 0;
+void sendAutoTuneState();
 
 void setupPins();
 void calibrate();
 void waitButtonPress();
-float followPath(bool stopRule, int maxPwm);
+float followPath(int maxPwm);
 
 enum Commands
 {
@@ -139,12 +152,80 @@ void loop()
       break;
 
     case State::Running:
-      followPath(true, configs.maxPwm);
-
-    case State::TuningPID:
+      if (readRight())
+      {
+        // Caso o startTime seja 0, ainda não passamos pela primeira marca
+        if (startTime == 0)
+        {
+          // Então inicia o contador
+          startTime = millis();
+        }
+        // Depois de passar pela primeira marca, só considera a proxima
+        // depois de 'rightLowTime' e finaliza o percurso
+        else if (millis() - startTime > configs.rightLowTime)
+        {
+          onStopCommand(&cmdMessenger);
+          break;
+        }
+      }
+      
       if (button.isPressed())
       {
-        autoTunePID();
+        onStopCommand(&cmdMessenger);
+        break;
+      }
+      followPath(configs.maxPwm);
+      break;
+      
+    case State::TuningPID:
+      for (int i = 0; i < 3; i++)
+      {
+        parameters[i] += dParameters[i];
+        pid.setTunings(parameters);
+        
+        error = followPath(configs.maxPwm);
+  
+        if (error < bestError)
+        {
+          bestError = error;
+          dParameters[i] *= 1.1;
+        }
+        else
+        {
+          parameters[i] -= 2 * dParameters[i];
+          pid.setTunings(parameters);
+          
+          error = followPath(configs.maxPwm);
+  
+          if (error < bestError)
+          {
+            bestError = error;
+            dParameters[i] *= 1.05f;
+          }
+          else
+          {
+            parameters[i] += dParameters[i];
+            dParameters[i] *= 0.95;
+          }
+        }
+        
+      }
+      dPSum = (dParameters[0] + dParameters[1] + dParameters[2]);
+
+      if(millis() - lastDataSentTime > 3000)
+      {
+        lastDataSentTime = millis();
+        sendAutoTuneState();
+      }
+
+      if (button.isPressed() || dPSum > dPThreshold)
+      {
+        currentState = State::Idle;
+        configs.kP = parameters[0];
+        configs.kI = parameters[1];
+        configs.kD = parameters[2];
+        sendAutoTuneState();
+        EEPROM.put(0, configs);
       }
       break;
   }
@@ -232,17 +313,17 @@ void onCalibrateCommand(CmdMessenger *messenger)
     stop();
     delay(300);
 
-    float angularSpeed = -pid.compute(readArray(&onLine));
+    float angularSpeed = -pid.compute(readArray());
     while (abs(angularSpeed) > 0.05)
     {
-      angularSpeed = -pid.compute(readArray(&onLine));
+      angularSpeed = -pid.compute(readArray());
       move(angularSpeed, configs.maxPwm / 2);
     }
 
     calStart = millis();
     while (millis() - calStart < 500)
     {
-      angularSpeed = -pid.compute(readArray(&onLine));
+      angularSpeed = -pid.compute(readArray());
       move(angularSpeed, configs.maxPwm / 2);
     }
     stop();
@@ -329,96 +410,30 @@ void onSwitchControlModeCommand(CmdMessenger *messenger)
 void onAutoTunePIDCommand(CmdMessenger *messenger)
 {
   currentState = State::TuningPID;
+  bestError = followPath(configs.maxPwm);
 }
 
-float followPath(bool stopRule, int maxPwm)
+float followPath(int maxPwm)
 {
-  if (readRight())
-  {
-    // Caso o startTime seja 0, ainda não passamos pela primeira marca
-    if (startTime == 0)
-    {
-      // Então inicia o contador
-      startTime = millis();
-    }
-    // Depois de passar pela primeira marca, só considera a proxima
-    // depois de 'rightLowTime' e finaliza o percurso
-    else if (stopRule && millis() - startTime > configs.rightLowTime)
-    {
-      onStopCommand(&cmdMessenger);
-      return;
-    }
-  }
-
-  if (button.isPressed()/* || (startTime != 0 && (millis() - startTime) > timeToStop)*/)
-  {
-    onStopCommand(&cmdMessenger);
-    return;
-  }
-
-  float input = readArray(&onLine);
+  float input = readArray();
   float angularSpeed = -pid.compute(input);
 
   move(angularSpeed, maxPwm, configs.halfMotorControl);
   return abs(input);
 }
 
-/// Tentativa de tunar os parametros do PID automaticamente utilizando um método chamado Tweddle
-void autoTunePID()
+void sendAutoTuneState()
 {
-  // Colocar alguns parâmetros que sabemos que funcionam razoavelmente bem
-  // Em ordem: P, I ,D
-  float parameters[3] = {0.7, 0, 0};
-  float dParameters[3] = {0.1, 0.005, 1};
-
-  float dPSum = (dParameters[0] + dParameters[1] + dParameters[2]);
-
-  // Quando a variação total dos parâmetros for menor do que esse limitante o código para
-  float dPThreshold = 0.000001f;
+  cmdMessenger.sendCmdStart(Commands::Acknowledge);
+  cmdMessenger.sendCmdArg(parameters[0]);
+  cmdMessenger.sendCmdArg(parameters[1]);
+  cmdMessenger.sendCmdArg(parameters[2]);
   
-  float error = 0;
-  float bestError = followPath(false, configs.maxPwm);
+  cmdMessenger.sendCmdArg(dParameters[0]);
+  cmdMessenger.sendCmdArg(dParameters[1]);
+  cmdMessenger.sendCmdArg(dParameters[2]);
   
-  while (dPSum > dPThreshold && !button.isPressed() && currentState == State::TuningPID)
-  {
-    cmdMessenger.sendCmdStart(Commands::Acknowledge);
-    for (int i = 0; i < 3; i++)
-    {
-      parameters[i] += dParameters[i];
-      pid.setTunings(parameters);
-      
-      error = followPath(false, configs.maxPwm);
-
-      if (error < bestError)
-      {
-        bestError = error;
-        dParameters[i] *= 1.1;
-      }
-      else
-      {
-        parameters[i] -= 2 * dParameters[i];
-        pid.setTunings(parameters);
-        
-        error = followPath(false, configs.maxPwm);
-
-        if (error < bestError)
-        {
-          bestError = error;
-          dParameters[i] *= 1.05f;
-        }
-        else
-        {
-          parameters[i] += dParameters[i];
-          dParameters[i] *= 0.95;
-        }
-      }
-      
-      cmdMessenger.sendCmdArg(parameters[i]);
-    }
-    
-    cmdMessenger.sendCmdEnd();
-    dPSum = (dParameters[0] + dParameters[1] + dParameters[2]);
-  }
-  EEPROM.put(0, configs);
+  cmdMessenger.sendCmdArg(dPSum);
+  cmdMessenger.sendCmdEnd();
 }
 
