@@ -3,9 +3,12 @@
 #include "PID.h"
 #include "SensorsHelper.h"
 #include "MotorControl.h"
+
 #include "Constants.h"
 #include "CmdMessenger.h"
 #include <EEPROM.h>
+
+bool reta = true;
 
 struct Configs
 {
@@ -86,16 +89,13 @@ void onLoadConfigsCommand(CmdMessenger *messenger);
 void onSwitchControlModeCommand(CmdMessenger *messenger);
 void onAutoTunePIDCommand(CmdMessenger *messenger);
 
-float batteryLevel;
-
 void setup()
 {
   //Serial.begin(9600);
   Serial3.begin(BAUD_RATE);
   setupPins();
-
   pid.setSetPoint(0);
-  pid.setSampleTime(5);
+  pid.setSampleTime(1);
   pid.setOutputLimits(-1, 1);
   onLoadConfigsCommand(&cmdMessenger);
 
@@ -115,12 +115,19 @@ void setup()
   cmdMessenger.attach(Commands::LoadConfigs, onLoadConfigsCommand);
   cmdMessenger.attach(Commands::SwitchControlMode, onSwitchControlModeCommand);
   cmdMessenger.attach(Commands::AutoTunePID, onAutoTunePIDCommand);
+  configs.rightLowTime = 1000*(15 + 3*(digitalReadFast(9) + digitalReadFast(10) + digitalReadFast(11) + digitalReadFast(12)));
 
-  batteryLevel = float(analogRead(BATTERY) / MAX_BATTERY);
+/*
+  configs.kP = KP_RETA;
+  configs.kI = 0;
+  configs.kD = KD_RETA;
+  pid.setTunings(configs.kP, configs.kI, configs.kD);
+  configs.maxPwm = PWM_RETA;
+  */
 }
 void loop()
 {
-  //Serial.println(readArray());
+  //Serial.println(readRight());
 //  float input, angularSpeed;
   cmdMessenger.feedinSerialData();
 
@@ -172,6 +179,9 @@ void loop()
           onStopCommand(&cmdMessenger);
           break;
         }
+      }
+      else {
+        digitalWriteFast(24, LOW);
       }
       
       if (button.isPressed())
@@ -246,6 +256,11 @@ void setupPins()
   pinMode(LED_PIN, OUTPUT);
   pinMode(BUTTON_PIN, INPUT);
   pinMode(BATTERY, INPUT);
+  pinMode(9, INPUT);
+  pinMode(10, INPUT);
+  pinMode(11,INPUT);
+  pinMode(12, INPUT);
+  pinMode(25, OUTPUT);
 }
 
 void onUnknownCommand(CmdMessenger *messenger)
@@ -372,7 +387,7 @@ void sendCurrentConfigs(CmdMessenger *messenger)
   messenger->sendCmdArg(configs.maxPwm);
   messenger->sendCmdArg(configs.timeToStop);
   messenger->sendCmdArg(configs.rightLowTime);
-  messenger->sendCmdArg(configs.halfMotorControl);
+
 }
 
 void onSaveConfigsCommand(CmdMessenger *messenger)
@@ -422,11 +437,18 @@ void onAutoTunePIDCommand(CmdMessenger *messenger)
 
 float followPath(int maxPwm)
 {
+  static bool ledState = false;
+  //static bool ledState = false;
+  //changeState(&ledState);
   float input = readArray();
   float angularSpeed = -pid.compute(input);
 
-  move(angularSpeed, maxPwm, configs.halfMotorControl, batteryLevel);
+  move(angularSpeed, maxPwm, configs.halfMotorControl);
+
+  //changeState(&ledState);
+  
   return abs(input);
+
 }
 
 void sendAutoTuneState()

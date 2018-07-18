@@ -26,6 +26,7 @@ private:
   float _integrativeSum;
   float _lastOutput;
   float _lastInput;
+  float _lastDerivative;
   float _kP, _kI, _kD;
   unsigned int _sampleTime, _lastRunTime;
   

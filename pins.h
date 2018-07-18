@@ -3,7 +3,7 @@
 
 #define LEFT_SENSOR_PIN  A9
 #define RIGHT_SENSOR_PIN A21
-#define LED_PIN 24
+#define LED_PIN 26
 #define BATTERY A14
 
 

@@ -89,6 +89,8 @@ float PID::compute(float input)
   // menos a derivada do sinal de entrada:
   float dInput = (_kD * (input - _lastInput)) / _sampleTime;
   float dError = -dInput;
+  float alfa = 0.5;
+  dError = dError*alfa + _lastDerivative*(1-alfa);
 
   // Calcula a saída do PID e salva numa váriavel
   _lastOutput = (_kP * error) + (_integrativeSum) + (dError);

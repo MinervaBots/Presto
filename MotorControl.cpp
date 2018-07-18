@@ -54,15 +54,16 @@ void fullMove(float linear, float angular, unsigned char maxPwm)
   }
 }
 
-void move(float angular, unsigned char maxPwm, bool half, float batteryLevel)
+void move(float angular, unsigned char maxPwm, bool half)
 {
-  maxPwm = int(maxPwm / batteryLevel);
   float linear = 1 - abs(angular);
+  /*
   if(half)
   {
     halfMove(linear, angular, maxPwm);
     return;
   }
+  */
   fullMove(linear, angular, maxPwm);
 }
 
