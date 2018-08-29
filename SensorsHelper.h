@@ -8,6 +8,6 @@ float readArray();
 bool readRight();
 bool readLeft();
 
-bool changeState(bool* ledState);
+bool changeState();
 
 #endif

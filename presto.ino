@@ -437,15 +437,17 @@ void onAutoTunePIDCommand(CmdMessenger *messenger)
 
 float followPath(int maxPwm)
 {
-  static bool ledState = false;
-  //static bool ledState = false;
-  //changeState(&ledState);
+  static bool ledState = true;
+  if (changeState()) {
+    //Serial.println("foi");
+    ledState = not(ledState);
+    digitalWriteFast(LED_PIN,ledState);
+  }
   float input = readArray();
-  float angularSpeed = -pid.compute(input);
+  float angularSpeed = -pid.compute(input); //invertido ver SensorHelper
 
+  //move(angularSpeed, maxPwm + (ledState - 1)*50, configs.halfMotorControl);
   move(angularSpeed, maxPwm, configs.halfMotorControl);
-
-  //changeState(&ledState);
   
   return abs(input);
 

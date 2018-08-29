@@ -35,7 +35,7 @@ void resetCalibration()
 float readArray()
 {
   int line = frontalSensors.readLine(arraySensorsValue, QTR_EMITTERS_ON, USE_WHITE_LINE);
-  return (line - ARRAY_CENTER_POSITION)/1000.0;
+  return (line - ARRAY_CENTER_POSITION)/1000.0; //invertido (ver followPath)
 }
 
 bool readRight()
@@ -52,14 +52,13 @@ bool readLeft()
   return leftValue < LINE_VALUE;
 }
 
-bool changeState(bool* ledState)
+bool changeState()
 {
-  static bool lastLeft = 0;
+  static unsigned long lastLeft = 0;
   if ((readLeft()) and (millis() - lastLeft > 200)) {
-    *ledState = not(ledState);
-    digitalWriteFast(28, *ledState);
+    lastLeft = millis();
+    //Serial.println(lastLeft);
     return true;
   }
-  lastLeft = millis();
   return false;
 }
