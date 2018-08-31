@@ -15,4 +15,13 @@
 #define STARTUP_DELAY 300
 #define DEBOUNCE_TIME 500
 
+#define KP_CURVA 0.8
+#define KD_CURVA 20
+#define PWM_CURVA 150
+
+
+//#define KP_RETA  0.5
+//#define KI_RETA  0
+//#define KD_RETA  20
+
 #endif // CONSTANTS_H

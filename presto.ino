@@ -10,10 +10,15 @@
 
 bool reta = true;
 
+int tamanho = 2;//18;
+bool pista[] = {0,0};//{0,1,0,1,1,0,0,1,0,1,0,0,1,0,1,0,1,0};
+int estado = 0;
+
 struct Configs
 {
   float kP, kI, kD;
   unsigned int maxPwm;
+  unsigned int curvePwm;
   unsigned long timeToStop;
   unsigned long rightLowTime;
   bool halfMotorControl;
@@ -53,7 +58,7 @@ void sendAutoTuneState();
 void setupPins();
 void calibrate();
 void waitButtonPress();
-float followPath(int maxPwm);
+float followPath(int maxPwm, int curvePwm);
 
 enum Commands
 {
@@ -115,15 +120,9 @@ void setup()
   cmdMessenger.attach(Commands::LoadConfigs, onLoadConfigsCommand);
   cmdMessenger.attach(Commands::SwitchControlMode, onSwitchControlModeCommand);
   cmdMessenger.attach(Commands::AutoTunePID, onAutoTunePIDCommand);
-  configs.rightLowTime = 1000*(15 + 3*(digitalReadFast(9) + digitalReadFast(10) + digitalReadFast(11) + digitalReadFast(12)));
+  //configs.rightLowTime = 1000*(15 + 3*(digitalReadFast(9) + digitalReadFast(10) + digitalReadFast(11) + digitalReadFast(12)));
 
-/*
-  configs.kP = KP_RETA;
-  configs.kI = 0;
-  configs.kD = KD_RETA;
-  pid.setTunings(configs.kP, configs.kI, configs.kD);
-  configs.maxPwm = PWM_RETA;
-  */
+
 }
 void loop()
 {
@@ -164,8 +163,17 @@ void loop()
       break;
 
     case State::Running:
+      if (startTime == 0)
+        {
+          startTime = millis();
+        }
+      if (millis() - startTime > configs.timeToStop) {
+        onStopCommand(&cmdMessenger);
+        break;
+      }
       if (readRight())
       {
+        //digitalWriteFast(LED_PIN, HIGH);
         // Caso o startTime seja 0, ainda não passamos pela primeira marca
         if (startTime == 0)
         {
@@ -181,7 +189,8 @@ void loop()
         }
       }
       else {
-        digitalWriteFast(24, LOW);
+        //digitalWriteFast(LED_PIN, LOW);
+        //digitalWriteFast(24, LOW);
       }
       
       if (button.isPressed())
@@ -298,6 +307,7 @@ void onSetKdCommand(CmdMessenger *messenger)
 void onSetMaxPWMCommand(CmdMessenger *messenger)
 {
   configs.maxPwm = messenger->readInt32Arg();
+  //configs.curvePwm = messenger->readInt32Arg();
   messenger->sendCmd(Commands::Acknowledge, "Max PWM alterado");
 }
 
@@ -370,6 +380,7 @@ void onStopCommand(CmdMessenger *messenger)
   move(0, configs.maxPwm);
   delay(50);
   stop();
+  estado = 0;
 
   unsigned long totalTime = millis() - startTime;
 
@@ -385,6 +396,7 @@ void sendCurrentConfigs(CmdMessenger *messenger)
   messenger->sendCmdArg(configs.kI);
   messenger->sendCmdArg(configs.kD);
   messenger->sendCmdArg(configs.maxPwm);
+  //messenger->sendCmdArg(configs.curvePwm);
   messenger->sendCmdArg(configs.timeToStop);
   messenger->sendCmdArg(configs.rightLowTime);
 
@@ -435,20 +447,46 @@ void onAutoTunePIDCommand(CmdMessenger *messenger)
   bestError = followPath(configs.maxPwm);
 }
 
-float followPath(int maxPwm)
+float followPath(int maxPwm)//, int curvePwm)
 {
   static bool ledState = true;
-  if (changeState()) {
-    //Serial.println("foi");
-    ledState = not(ledState);
-    digitalWriteFast(LED_PIN,ledState);
-  }
-  float input = readArray();
-  float angularSpeed = -pid.compute(input); //invertido ver SensorHelper
-
   //move(angularSpeed, maxPwm + (ledState - 1)*50, configs.halfMotorControl);
-  move(angularSpeed, maxPwm, configs.halfMotorControl);
+  float input = readArray();
+  //float angularSpeed = -pid.compute(input); //invertido ver SensorHelper
+  if (changeState()) {
+    //ledState=not(ledState);
+    if (estado < tamanho) {
+      estado++;
+    }
+    else {
+      //onStopCommand(&cmdMessenger);
+      estado = 1;
+    }
+    /*
+    if (pista[estado]) {
+      analogWrite(L_MOTOR_1, 0);
+      analogWrite(L_MOTOR_2, 255);
+      analogWrite(R_MOTOR_1, 255);
+      analogWrite(R_MOTOR_2, 0);
+      delay(50);
+    }
+    */
+    
+  }
+  if (pista[estado]) {//(ledState==false){
+    pid.setTunings(KP_CURVA, 0, KD_CURVA);
+    float angularSpeed = pid.compute(input);
+    move(angularSpeed, PWM_CURVA, configs.halfMotorControl);//curvePwm, configs.halfMotorControl);
+  }
   
+  else{
+   // configs.kP = KP_RETA;
+   // configs.kI = KI_RETA;
+   // configs.kD = KD_RETA;
+    pid.setTunings(configs.kP, configs.kI, configs.kD);
+    float angularSpeed = pid.compute(input);
+    move(angularSpeed, maxPwm, configs.halfMotorControl);
+  }
   return abs(input);
 
 }
@@ -467,4 +505,3 @@ void sendAutoTuneState()
   cmdMessenger.sendCmdArg(dPSum);
   cmdMessenger.sendCmdEnd();
 }
-
