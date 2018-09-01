@@ -459,10 +459,17 @@ float followPath(int maxPwm)//, int curvePwm)
       estado++;
     }
     else {
-      //onStopCommand(&cmdMessenger);
-      estado = 1;
+      unsigned long waitStart = millis();
+      float angularSpeed;
+      while (millis() - waitStart < 1500) { // tempo entre ultima marcação da esquerda e momento de parada
+        angularSpeed = pid.compute(input);
+        move(angularSpeed, 255);//configs.maxPwm);
+        
+      }
+      onStopCommand(&cmdMessenger);
+      //estado = 1;
     }
-    /*
+    
     if (pista[estado]) {
       analogWrite(L_MOTOR_1, 0);
       analogWrite(L_MOTOR_2, 255);
@@ -470,7 +477,7 @@ float followPath(int maxPwm)//, int curvePwm)
       analogWrite(R_MOTOR_2, 0);
       delay(50);
     }
-    */
+    
     
   }
   if (pista[estado]) {//(ledState==false){
